@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Floor
+  - PickUp
+  - Alcohol
+  - HighBuilding
+  - Car
+  - Point
   layers:
   - Default
   - TransparentFX
@@ -13,9 +19,9 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
+  - IgnoreRayCast
+  - Camera
+  - HighBuilding
   - 
   - 
   - 
