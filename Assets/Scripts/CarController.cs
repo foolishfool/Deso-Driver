@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using DG.Tweening;
+using System.Linq;
 
 public class CarController : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class CarController : MonoBehaviour
         navMeshPath = new NavMeshPath();
         SelfNavAgent = GetComponent<NavMeshAgent>();
         SelfNavAgent.updateRotation = false;
+
     }
 
     // Update is called once per frame
@@ -43,17 +45,39 @@ public class CarController : MonoBehaviour
         if (other.gameObject.CompareTag("Point"))
         {
             if (GameController.Instance.TargetPoint)
-            {   
+            {
+             
                 if (other.gameObject == GameController.Instance.TargetPoint)
                 {
+                    Debug.Log(1111111);
+                    Debug.Log(GameController.Instance.TargetPoint.name);
                     GetComponent<WaypointMover>().movementSpeed = 0;
                 }
                 else
                 {
-                    if (other.gameObject.GetComponent<Point>().isChangePoint)
+                    int totoalChangePointsNum = GameController.Instance.BestSolution.Count;
+                    Point changePoint = new Point();
+                    if (gameObject.GetComponent<WaypointsHolder>())
                     {
-
+                        GameController.Instance.BestSolution.Last().TryGetValue(gameObject.GetComponent<WaypointsHolder>(), out changePoint);
+                        if (other.gameObject == changePoint.gameObject)
+                        {
+                            GameController.Instance.BestSolution.RemoveAt(GameController.Instance.BestSolution.Count - 1);
+                            //change to next line
+                            gameObject.GetComponent<WaypointMover>().waypointsHolder = GameController.Instance.BestSolution.Last().First().Key;
+                        }
                     }
+                  
+
+   
+                   // if (other.gameObject.GetComponent<Point>().isChangePoint)
+                   // {
+                   //     // //if first change point
+                   //     // if (other.gameObject.GetComponent<Point>() == GameController.Instance.GetChangePointWithAllChangesPointsInSameLineWithStartPoint(GameController.Instance.CurrentPositionObj.GetComponent<Point>(), GetComponent<WaypointsHolder>(), GameController.Instance.AllchangePointsInFirstLine))
+                   //     // {
+                   //     //     //change to next line
+                   //     // }
+                   // }
                 }
             }
           

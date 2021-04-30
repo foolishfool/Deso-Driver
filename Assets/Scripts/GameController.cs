@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using System.Linq;
 public class GameController : MonoBehaviour
 {
     [HideInInspector]
@@ -14,7 +15,7 @@ public class GameController : MonoBehaviour
     public GameObject Points;
     public List<Transform> AlcoholPoses;
     //current the nearest point from car
-    [HideInInspector] GameObject CurrentPositionObj;
+    [HideInInspector] public GameObject CurrentPositionObj;
     //the target position
     [HideInInspector]
     public GameObject TargetPoint;
@@ -29,9 +30,15 @@ public class GameController : MonoBehaviour
     //car move sequence should from end to from of List<Dictionary<WaypointsHolder, Point>>
     [HideInInspector]
     public List<List<Dictionary<WaypointsHolder, Point>>> AllRoutesCanArrive = new List<List<Dictionary<WaypointsHolder, Point>>>();
-    //all the change point combination holser+ point
+
     [HideInInspector]
-    Dictionary<WaypointsHolder, Point> allChangepoints = new Dictionary<WaypointsHolder, Point>();
+    public List<Dictionary<WaypointsHolder, Point>> BestSolution = new List<Dictionary<WaypointsHolder, Point>>();
+
+    [HideInInspector]
+    public List<Point> AllchangePointsInFirstLine = new List<Point>();
+
+    private Dictionary<Point, int> changPointWithBestSolutionWayPointNum = new Dictionary<Point, int>();
+
     private int maxPickupNum = 10;
     private int maxAlcoholNum = 8;
     private int generatePickupInterval;
@@ -115,8 +122,14 @@ public class GameController : MonoBehaviour
                 {
                     GetCommonLines(CurrentPositionObj.GetComponent<Point>(), TargetPoint.GetComponent<Point>());
                     //handle AllRoutesCanArrive 
+                    BestSolution = GetOneSolutionFromAll(TargetPoint.GetComponent<Point>());
+                    SetInitalHolder();
                     Car.GetComponent<WaypointMover>().movementSpeed = Car.GetComponent<CarController>().InitialMoveSpeed;
+
+                    
                 }
+
+
                // if (!Car.GetComponent<CarController>().CalculateNewPath(newPos2))
                //  Instantiate(HitEffect2, newPos2, Quaternion.identity);
 
@@ -200,6 +213,9 @@ public class GameController : MonoBehaviour
             Dictionary<WaypointsHolder, Point> oneChangepoint = new Dictionary<WaypointsHolder, Point>();
             oneChangepoint.Add(end.GetSameWaypointHolder(start),null);
             oneSolution.Add(oneChangepoint);
+            //only add the last point ,which is the point in the same line with start point
+            AllchangePointsInFirstLine.Add(oneChangepoint.First().Value);
+           // changPointWithBestSolutionWayPointNum.Add(oneChangepoint.First().Value, 0);
             AllRoutesCanArrive.Add(oneSolution);
             InitialHolders.Add(end.GetSameWaypointHolder(start));
         }
@@ -212,7 +228,7 @@ public class GameController : MonoBehaviour
               
                 GameObject nearestPointToALine = start.GetNearestPointInOneLine(end.BelongedWaypointHolders[i]);
                 Dictionary<WaypointsHolder, Point> oneChangepoint = new Dictionary<WaypointsHolder, Point>();
-                nearestPointToALine.GetComponent<Point>().isChangePoint = true;
+              
                 oneChangepoint.Add(end.BelongedWaypointHolders[i], nearestPointToALine.GetComponent<Point>());
                 oneSolution.Add(oneChangepoint);
                 AllRoutesCanArrive.Add(oneSolution);
@@ -222,6 +238,79 @@ public class GameController : MonoBehaviour
 
      
         }
+    }
+
+
+    public List<Dictionary<WaypointsHolder, Point>> GetOneSolutionFromAll(Point onePoint)
+    {
+        int currentMinNum = GetPointNumberInoneSolution(AllRoutesCanArrive[0]);
+        List<Dictionary<WaypointsHolder, Point>> currentSolution = AllRoutesCanArrive[0];
+        for (int i = 0; i < AllRoutesCanArrive.Count; i++)
+        {
+            if (PointExitInOneSoltuion(AllRoutesCanArrive[i],onePoint))
+            {
+                if (GetPointNumberInoneSolution(AllRoutesCanArrive[i]) < currentMinNum)
+                {
+                    currentMinNum = GetPointNumberInoneSolution(AllRoutesCanArrive[i]);
+                    currentSolution = AllRoutesCanArrive[i];
+                }
+            }
+
+        }
+
+        return currentSolution;
+    }
+
+    //if given onepoint exit in one solution
+    public bool PointExitInOneSoltuion(List<Dictionary<WaypointsHolder, Point>> onesolution, Point onePoint)
+    {
+        for (int i = 0; i < onesolution.Count; i++)
+        {
+            if (onesolution[i].ContainsValue(onePoint))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    //find out how many waypoint in one solution
+    public int GetPointNumberInoneSolution(List<Dictionary<WaypointsHolder, Point>> onesolution)
+    {
+        int num = 0;
+        for (int i = 0; i < onesolution.Count; i++)
+        {
+            num += onesolution[i].First().Key.waypoints.Count;
+        }
+
+        return num;
+    }
+    //find which change point to go at very begining in the first line same with start point
+    public Point GetChangePointWithAllChangesPointsInSameLineWithStartPoint(Point startPoint, WaypointsHolder belongedHolder, List<Point> allchangePointsInFirstLine)
+    {
+        int minNum = belongedHolder.GetWayPointsNumBetweenTwoPoint(startPoint.GetComponent<Waypoint>(), allchangePointsInFirstLine[0].GetComponent<Waypoint>())
+            + changPointWithBestSolutionWayPointNum[allchangePointsInFirstLine[0]];
+        Point currentBestPoint = allchangePointsInFirstLine[0];
+        for (int i = 0; i < allchangePointsInFirstLine.Count; i++)
+        {
+            int currentLineMinNum = belongedHolder.GetWayPointsNumBetweenTwoPoint(startPoint.GetComponent<Waypoint>(), allchangePointsInFirstLine[i].GetComponent<Waypoint>());
+            currentLineMinNum += changPointWithBestSolutionWayPointNum[allchangePointsInFirstLine[i]];
+
+            if (minNum > currentLineMinNum)
+            {
+                currentBestPoint = allchangePointsInFirstLine[i];
+            }
+
+        }
+
+        return currentBestPoint;
+    }
+
+
+    public void SetInitalHolder()
+    {
+       Car.GetComponent<WaypointMover>().waypointsHolder =  BestSolution.Last().First().Key;
     }
 }
 

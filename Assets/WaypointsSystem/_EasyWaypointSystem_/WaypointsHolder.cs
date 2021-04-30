@@ -75,5 +75,17 @@ public class WaypointsHolder : MonoBehaviour
 				}
 	}
 
+	public int GetWayPointsNumBetweenTwoPoint(Waypoint first, Waypoint second)
+	{
+		int firstIndex = waypoints.IndexOf(first);
+		int secondIndex = waypoints.IndexOf(second);
+		if (firstIndex > secondIndex)
+        {
+			return secondIndex - firstIndex -1;
+
+		}
+		else return waypoints.Count - secondIndex + firstIndex -1;
+
+	}
 	//----------------------------------------------------------------------------------
 }

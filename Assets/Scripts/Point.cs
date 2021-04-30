@@ -5,8 +5,7 @@ using UnityEngine;
 
 public class Point : MonoBehaviour
 {
-    //whether need to change to new line
-    [HideInInspector] public bool isChangePoint;
+
     public Vector3 Direction;
     public GameObject StartPoint;
     public List<WaypointsHolder> BelongedWaypointHolders;
@@ -36,7 +35,7 @@ public class Point : MonoBehaviour
     {
         for (int i = 0; i < BelongedWaypointHolders.Count; i++)
         {
-            Debug.Log(StartPoint.name);
+           // Debug.Log(StartPoint.name);
             //return a hoder that contains both start and target
             if (WayPointHasObj(BelongedWaypointHolders[i], StartPoint.gameObject))
             {
@@ -44,7 +43,7 @@ public class Point : MonoBehaviour
             }
 
         }
-
+        Debug.Log("No way point Holder !");
         return null;
     }
     public WaypointsHolder GetSharedLine(Point comparedPoint)
