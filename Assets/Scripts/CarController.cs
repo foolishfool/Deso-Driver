@@ -44,44 +44,40 @@ public class CarController : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Point"))
         {
-            if (GameController.Instance.TargetPoint)
+            Debug.Log(other.gameObject);
+            if (other.gameObject == GameController.Instance.TargetPoint)
             {
-             
-                if (other.gameObject == GameController.Instance.TargetPoint)
-                {
-                    Debug.Log(1111111);
-                    Debug.Log(GameController.Instance.TargetPoint.name);
-                    GetComponent<WaypointMover>().movementSpeed = 0;
-                }
-                else
-                {
-                    int totoalChangePointsNum = GameController.Instance.BestSolution.Count;
-                    Point changePoint = new Point();
-                    if (gameObject.GetComponent<WaypointsHolder>())
-                    {
-                        GameController.Instance.BestSolution.Last().TryGetValue(gameObject.GetComponent<WaypointsHolder>(), out changePoint);
-                        if (other.gameObject == changePoint.gameObject)
-                        {
-                            GameController.Instance.BestSolution.RemoveAt(GameController.Instance.BestSolution.Count - 1);
-                            //change to next line
-                            gameObject.GetComponent<WaypointMover>().waypointsHolder = GameController.Instance.BestSolution.Last().First().Key;
-                        }
-                    }
-                  
-
-   
-                   // if (other.gameObject.GetComponent<Point>().isChangePoint)
-                   // {
-                   //     // //if first change point
-                   //     // if (other.gameObject.GetComponent<Point>() == GameController.Instance.GetChangePointWithAllChangesPointsInSameLineWithStartPoint(GameController.Instance.CurrentPositionObj.GetComponent<Point>(), GetComponent<WaypointsHolder>(), GameController.Instance.AllchangePointsInFirstLine))
-                   //     // {
-                   //     //     //change to next line
-                   //     // }
-                   // }
-                }
+            
+                Debug.Log(GameController.Instance.TargetPoint.name);
+                GetComponent<WaypointMover>().movementSpeed = 0;
             }
-          
-      
+            else
+            {
+ 
+                Point changePoint = new Point();
+                if (gameObject.GetComponent<WaypointMover>().waypointsHolder)
+                {
+                   // Debug.Log(gameObject.GetComponent<WaypointMover>().waypointsHolder.name+ System.DateTime.Now.ToString());
+                  //  GameController.Instance.BestSolution.First().TryGetValue(gameObject.GetComponent<WaypointMover>().waypointsHolder, out changePoint);
+                    if (other.gameObject == GameController.Instance.BestSolution.First().First().Value.gameObject)
+                    {
+                                      
+                       // Debug.Log(GameController.Instance.BestSolution.First().First().Key.name + System.DateTime.Now.ToString());
+                        gameObject.GetComponent<WaypointMover>().waypointsHolder = GameController.Instance.BestSolution.First().First().Key;
+                        gameObject.GetComponent<WaypointMover>().ResetCurrentPositionWhenChangeHolder();
+                       // Debug.Log("Change to new path " + gameObject.GetComponent<WaypointMover>().waypointsHolder.name + "11111111111111111111" + System.DateTime.Now.ToString());
+                        //remove one changepointset after pass
+                        GameController.Instance.BestSolution.RemoveAt(0);
+                        //change to next line
+
+
+                    }
+  
+                }
+
+            }
+
+
         }
             return;
         // Debug.Log(other.gameObject.name + "ddddd");
@@ -89,7 +85,6 @@ public class CarController : MonoBehaviour
         {
 
             // SelfNavAgent.destination = other.gameObject.transform.position;
-            Debug.Log(111111111);
             direction = other.gameObject.GetComponent<Point>().Direction;
             position = other.gameObject.GetComponent<Point>().transform.position;
             //  Vector3 newDirecton = new Vector3(0, other.gameObject.GetComponent<Point>().Direction.y, 0);

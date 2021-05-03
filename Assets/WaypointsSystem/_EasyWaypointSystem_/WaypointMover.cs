@@ -93,6 +93,7 @@ public class WaypointMover : MonoBehaviour
 
 		if (StartFromNearestWaypoint)
 		{
+		
 			Vector3 waypointPosition;
 			int nearestWaypointID = 0;
 			float previousSmallestDistance = Mathf.Infinity;
@@ -113,6 +114,8 @@ public class WaypointMover : MonoBehaviour
 			}
 
 			currentWaypoint = nearestWaypointID;
+
+			Debug.Log(nearestWaypointID + "Nearet Point 1111111111111" );
 		}
 		else 
 			currentWaypoint = 0;
@@ -349,6 +352,49 @@ public class WaypointMover : MonoBehaviour
 		else 
 			inMove = false;  
 		
+	}
+
+	public void ResetCurrentPositionWhenChangeHolder()
+	{
+		if (StartFromNearestWaypoint)
+		{
+
+			Vector3 waypointPosition;
+			int nearestWaypointID = 0;
+			float previousSmallestDistance = Mathf.Infinity;
+			float distance;
+
+			for (int i = 0; i < waypointsHolder.waypoints.Count; i++)
+			{
+				waypointPosition = waypointsHolder.waypoints[i].gameObject.transform.position;
+				waypointPosition = IgnorePositionByAxis(waypointPosition);
+
+				distance = Vector3.Distance(transform.position, waypointPosition);
+				if (distance < previousSmallestDistance)
+				{
+					nearestWaypointID = i;
+					previousSmallestDistance = distance;
+				}
+
+			}
+
+			currentWaypoint = nearestWaypointID;
+
+			//if current alreday in the nearest point then move nearest point to be next
+			float newDistance = Vector3.Distance(transform.position, IgnorePositionByAxis( waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position));
+			Debug.Log(newDistance + "dfdfsdfsd");
+			if (newDistance == 0)
+            {
+				currentWaypoint++;
+				Debug.Log("dfdfsdfsd");
+			}
+
+			Debug.Log(nearestWaypointID + "Nearet Point 1111111111111");
+
+			targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
+			targetPosition = IgnorePositionByAxis(targetPosition);
+		}
+	
 	}
 
 	//----------------------------------------------------------------------------------

@@ -12,12 +12,14 @@ public class GameController : MonoBehaviour
     public GameObject HitEffect;
     public GameObject HitEffect2;
     public List<GameObject> CheckPoints;
+    //all the endchagnepoints currently get
+    public List<Point> AllpointshaveParent = new List<Point>();
     public GameObject Points;
     public List<Transform> AlcoholPoses;
     //current the nearest point from car
     [HideInInspector] public GameObject CurrentPositionObj;
     //the target position
-    [HideInInspector]
+   // [HideInInspector]
     public GameObject TargetPoint;
     public List<GameObject> GeneratedPickUpPosesObj;
     public List<int> GeneratedAlcoholPosesIndexes;
@@ -25,11 +27,6 @@ public class GameController : MonoBehaviour
     public List<GameObject> PickUps;
     public List<GameObject> Alcohols;
 
-    //each element in AllRoutesCanArrive is one solution
-    //List<Dictionary<WaypointsHolder, Point>> is the sequence of change point and line 
-    //car move sequence should from end to from of List<Dictionary<WaypointsHolder, Point>>
-    [HideInInspector]
-    public List<List<Dictionary<WaypointsHolder, Point>>> AllRoutesCanArrive = new List<List<Dictionary<WaypointsHolder, Point>>>();
 
     [HideInInspector]
     public List<Dictionary<WaypointsHolder, Point>> BestSolution = new List<Dictionary<WaypointsHolder, Point>>();
@@ -108,25 +105,26 @@ public class GameController : MonoBehaviour
                 TargetPoint.GetComponent<Point>().StartPoint = CurrentPositionObj;
                 Instantiate(HitEffect, destinationpos.position, Quaternion.identity);
 
-                //  if (Car.GetComponent<CarController>().CalculateNewPath(destinationpos.position))
-                //  {
-                //      Car.GetComponent<NavMeshAgent>().isStopped = false;
-                //      //  Car.GetComponent<NavMeshAgent>().velocity *= 0.1f ;
-                //        //  Car.GetComponent<NavMeshAgent>().destination = destinationpos.position;
-                //     
-                //      Instantiate(HitEffect, destinationpos.position, Quaternion.identity);
-                //   //   Car.transform.DORotateQuaternion(destinationpos.rotation,2f);
-                //      //   Debug.Log(newPos.x + "   " + newPos.y + "   " + newPos.z);
-                //  }
+                for (int i = 0; i < AllpointshaveParent.Count; i++)
+                {
+                    if (AllpointshaveParent[i].ParentChangePoint)
+                    {
+                        AllpointshaveParent[i].ParentChangePoint = null;
+                    }
+              
+                }
+
                 if (TargetPoint.GetComponent<Point>().BelongedWaypointHolders.Count!= 0)
                 {
-                    GetCommonLines(CurrentPositionObj.GetComponent<Point>(), TargetPoint.GetComponent<Point>());
-                    //handle AllRoutesCanArrive 
-                    BestSolution = GetOneSolutionFromAll(TargetPoint.GetComponent<Point>());
-                    SetInitalHolder();
-                    Car.GetComponent<WaypointMover>().movementSpeed = Car.GetComponent<CarController>().InitialMoveSpeed;
+                    BestSolution.Clear();
+                    GetSolutionLine(CurrentPositionObj.GetComponent<Point>(), TargetPoint.GetComponent<Point>());
+                  //  GetSolutionLine(CurrentPositionObj.GetComponent<Point>(), GameObject.Find("Point (161)").GetComponent<Point>());
 
-                    
+              
+                      SetInitalHolder();
+                      Car.GetComponent<WaypointMover>().movementSpeed = Car.GetComponent<CarController>().InitialMoveSpeed;
+
+
                 }
 
 
@@ -205,61 +203,68 @@ public class GameController : MonoBehaviour
         return CheckPoints[pointIndex];
     }
 
-    public void GetCommonLines(Point start, Point end)
+    //one slution means all the pointset should be in this solution
+    public void GetSolutionLine(Point start, Point end)
     {
-        if (end.GetSameWaypointHolder(start) != null)
+        if (end.IfTwoPointsInTheSamePath(start) != null)
         {
-            List<Dictionary<WaypointsHolder, Point>> oneSolution = new List<Dictionary<WaypointsHolder, Point>>();
-            Dictionary<WaypointsHolder, Point> oneChangepoint = new Dictionary<WaypointsHolder, Point>();
-            oneChangepoint.Add(end.GetSameWaypointHolder(start),null);
-            oneSolution.Add(oneChangepoint);
-            //only add the last point ,which is the point in the same line with start point
-            AllchangePointsInFirstLine.Add(oneChangepoint.First().Value);
-           // changPointWithBestSolutionWayPointNum.Add(oneChangepoint.First().Value, 0);
-            AllRoutesCanArrive.Add(oneSolution);
-            InitialHolders.Add(end.GetSameWaypointHolder(start));
+            //caanot set end.ParentChangePoint = end.gameObject; only last changepoint in solution has this 
+            // end.ParentChangePoint = end.gameObject;
+            Debug.Log("Reach End!");
+            //get best solution
+            GetOneSolutionFromEndChangePoint(end,null);
+            
         }
         else
 
         {
+
+            List<GameObject> allNearestChangePoints = new List<GameObject>();
+            GameObject nearestChangePoint = new GameObject();
+
             for (int i = 0; i < end.BelongedWaypointHolders.Count; i++)
             {
-                List<Dictionary<WaypointsHolder, Point>> oneSolution = new List<Dictionary<WaypointsHolder, Point>>();
-              
-                GameObject nearestPointToALine = start.GetNearestPointInOneLine(end.BelongedWaypointHolders[i]);
-                Dictionary<WaypointsHolder, Point> oneChangepoint = new Dictionary<WaypointsHolder, Point>();
-              
-                oneChangepoint.Add(end.BelongedWaypointHolders[i], nearestPointToALine.GetComponent<Point>());
-                oneSolution.Add(oneChangepoint);
-                AllRoutesCanArrive.Add(oneSolution);
-                GetCommonLines(start, nearestPointToALine.GetComponent<Point>());
-            }
-            
+              //  Debug.Log(end.BelongedWaypointHolders[i].name + "Path name");
+               //get the nearest change point (point that have more than one paths) from start to last path
+                GameObject nearestChangePointToALine = start.GetNearestChangePointInOneLine(end.BelongedWaypointHolders[i]);
+         
+                allNearestChangePoints.Add(nearestChangePointToALine);
 
-     
-        }
-    }
-
-
-    public List<Dictionary<WaypointsHolder, Point>> GetOneSolutionFromAll(Point onePoint)
-    {
-        int currentMinNum = GetPointNumberInoneSolution(AllRoutesCanArrive[0]);
-        List<Dictionary<WaypointsHolder, Point>> currentSolution = AllRoutesCanArrive[0];
-        for (int i = 0; i < AllRoutesCanArrive.Count; i++)
-        {
-            if (PointExitInOneSoltuion(AllRoutesCanArrive[i],onePoint))
-            {
-                if (GetPointNumberInoneSolution(AllRoutesCanArrive[i]) < currentMinNum)
+                if (end.gameObject != TargetPoint)
                 {
-                    currentMinNum = GetPointNumberInoneSolution(AllRoutesCanArrive[i]);
-                    currentSolution = AllRoutesCanArrive[i];
+                    nearestChangePointToALine.GetComponent<Point>().ParentChangePoint = end.gameObject;
                 }
+                else nearestChangePointToALine.GetComponent<Point>().ParentChangePoint = nearestChangePointToALine;
+
             }
 
-        }
+            //get the nearest change points in allNearestChangePoints
+            int nearIndex = 0;
 
-        return currentSolution;
+            float mindDistance = Vector3.Distance(start.gameObject.transform.position, allNearestChangePoints[0].gameObject.transform.position);
+            for (int i = 0; i < allNearestChangePoints.Count; i++)
+            {                      
+                if (mindDistance > Vector3.Distance(start.gameObject.transform.position, allNearestChangePoints[i].gameObject.transform.position))
+                {
+                   nearIndex = i;
+                }        
+            }
+
+            nearestChangePoint = allNearestChangePoints[nearIndex].gameObject;
+
+          // Debug.Log("nearestChangePointToALine " + nearestChangePoint.name);
+          //  Debug.Log("Get One parent chage point " + nearestChangePoint.GetComponent<Point>().ParentChangePoint.name);
+
+            if (!AllpointshaveParent.Contains(nearestChangePoint.GetComponent<Point>()))
+            {
+                AllpointshaveParent.Add(nearestChangePoint.GetComponent<Point>());
+            }
+
+           GetSolutionLine(start, nearestChangePoint.GetComponent<Point>());
+
+        }
     }
+
 
     //if given onepoint exit in one solution
     public bool PointExitInOneSoltuion(List<Dictionary<WaypointsHolder, Point>> onesolution, Point onePoint)
@@ -310,7 +315,40 @@ public class GameController : MonoBehaviour
 
     public void SetInitalHolder()
     {
-       Car.GetComponent<WaypointMover>().waypointsHolder =  BestSolution.Last().First().Key;
+        Debug.Log(BestSolution.Count);
+        Car.GetComponent<WaypointMover>().waypointsHolder =  BestSolution.First().First().Key;
+        //go from nearest point
+        Car.GetComponent<WaypointMover>().ResetCurrentPositionWhenChangeHolder();
+        Debug.Log("Set Initial Path " + Car.GetComponent<WaypointMover>().waypointsHolder.name);
+    }
+
+
+    public void GetOneSolutionFromEndChangePoint(Point endPoint, List<Dictionary<WaypointsHolder, Point>> oneSolution )
+    {
+        if (oneSolution == null)
+        {
+            oneSolution = new List<Dictionary<WaypointsHolder, Point>>();
+        }
+
+
+            //to the targetpoint
+            if (endPoint.ParentChangePoint == endPoint.gameObject)
+            {
+              Dictionary<WaypointsHolder, Point> oneChangePoint = new Dictionary<WaypointsHolder, Point>();
+              oneChangePoint.Add(endPoint.GetBestHolderToParentchangePoint(), endPoint);
+              oneSolution.Add(oneChangePoint);
+             //get bestSolution
+               BestSolution = oneSolution;
+               Debug.Log("Get Best Solution!");
+            }
+            else
+            {
+                Dictionary<WaypointsHolder, Point> oneChangePoint = new Dictionary<WaypointsHolder, Point>();
+                oneChangePoint.Add(endPoint.GetBestHolderToParentchangePoint(), endPoint);
+                oneSolution.Add(oneChangePoint);
+                Debug.Log("Add change point to best solution" + oneChangePoint.First().Value.gameObject.name);
+                GetOneSolutionFromEndChangePoint(endPoint.ParentChangePoint.GetComponent<Point>(), oneSolution);
+            }     
     }
 }
 
