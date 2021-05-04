@@ -9,33 +9,23 @@ public class CarController : MonoBehaviour
 {
     [HideInInspector]
     public NavMeshAgent SelfNavAgent;
-    private Vector3 direction;
-    private Vector3 position;
-    public Vector3 CurrentDestination;
-    public Vector3 PreviousDestination;
+
     public float InitialMoveSpeed = 10;
-    private NavMeshPath navMeshPath ;
-   // Start is called before the first frame update
-   void Start()
+    [HideInInspector]
+    public Sequence Sequence ;
+
+    // Start is called before the first frame update
+    void Start()
     {
-        navMeshPath = new NavMeshPath();
+
         SelfNavAgent = GetComponent<NavMeshAgent>();
-        SelfNavAgent.updateRotation = false;
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        return;
-        if (!SelfNavAgent.pathPending)
-        {
-            if (SelfNavAgent.remainingDistance <= SelfNavAgent.stoppingDistance)
-            {
-                SelfNavAgent.isStopped = true;
-            }
-            MoveAndRotateTowards(position,direction);
-        }
+ 
 
     }
 
@@ -44,12 +34,15 @@ public class CarController : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Point"))
         {
-            Debug.Log(other.gameObject);
+            Debug.Log(other.gameObject.name + "  Enconter !" );
             if (other.gameObject == GameController.Instance.TargetPoint)
             {
             
                 Debug.Log(GameController.Instance.TargetPoint.name);
                 GetComponent<WaypointMover>().movementSpeed = 0;
+                Sequence = DOTween.Sequence();
+                Sequence.Append (transform.DOMove(other.gameObject.transform.position,1f));
+                Sequence.Play();
             }
             else
             {
@@ -57,18 +50,21 @@ public class CarController : MonoBehaviour
                 Point changePoint = new Point();
                 if (gameObject.GetComponent<WaypointMover>().waypointsHolder)
                 {
-                   // Debug.Log(gameObject.GetComponent<WaypointMover>().waypointsHolder.name+ System.DateTime.Now.ToString());
-                  //  GameController.Instance.BestSolution.First().TryGetValue(gameObject.GetComponent<WaypointMover>().waypointsHolder, out changePoint);
+
+                    if (GameController.Instance.BestSolution.Count == 0)
+                    {
+                        //in this situation, there is no bestsolution, as tartet and start in the same line just need to move follow current line is OK
+                        return;
+                    }
+
                     if (other.gameObject == GameController.Instance.BestSolution.First().First().Value.gameObject)
                     {
                                       
-                       // Debug.Log(GameController.Instance.BestSolution.First().First().Key.name + System.DateTime.Now.ToString());
                         gameObject.GetComponent<WaypointMover>().waypointsHolder = GameController.Instance.BestSolution.First().First().Key;
-                        gameObject.GetComponent<WaypointMover>().ResetCurrentPositionWhenChangeHolder();
-                       // Debug.Log("Change to new path " + gameObject.GetComponent<WaypointMover>().waypointsHolder.name + "11111111111111111111" + System.DateTime.Now.ToString());
+                        gameObject.GetComponent<WaypointMover>().ResetCurrentPositionWhenChangeHolder(other.gameObject);
+          
                         //remove one changepointset after pass
                         GameController.Instance.BestSolution.RemoveAt(0);
-                        //change to next line
 
 
                     }
@@ -79,45 +75,8 @@ public class CarController : MonoBehaviour
 
 
         }
-            return;
-        // Debug.Log(other.gameObject.name + "ddddd");
-        if (other.gameObject.CompareTag("Point"))
-        {
-
-            // SelfNavAgent.destination = other.gameObject.transform.position;
-            direction = other.gameObject.GetComponent<Point>().Direction;
-            position = other.gameObject.GetComponent<Point>().transform.position;
-            //  Vector3 newDirecton = new Vector3(0, other.gameObject.GetComponent<Point>().Direction.y, 0);
-            //   gameObject.transform.localRotation = Quaternion.LookRotation(other.gameObject.GetComponent<Point>().Direction);
-        }
-        else position = SelfNavAgent.destination;
-
-        if (other.CompareTag("PickUp"))
-        {
-            //ui update 
-            other.gameObject.GetComponent<Pickup>().Disappear();
-        }
-
-        if (other.CompareTag("Alcohol"))
-        {
-            //ui update 
-           // other.gameObject.GetComponent<>().Disappear();
-        }
-    }
-
-    public bool CalculateNewPath(Vector3 Destination)
-    {
-
-        SelfNavAgent.CalculatePath(Destination, navMeshPath);
-
-        if (navMeshPath.status != NavMeshPathStatus.PathComplete)
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+ 
+     
     }
 
 

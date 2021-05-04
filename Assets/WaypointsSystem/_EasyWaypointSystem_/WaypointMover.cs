@@ -115,7 +115,6 @@ public class WaypointMover : MonoBehaviour
 
 			currentWaypoint = nearestWaypointID;
 
-			Debug.Log(nearestWaypointID + "Nearet Point 1111111111111" );
 		}
 		else 
 			currentWaypoint = 0;
@@ -135,6 +134,7 @@ public class WaypointMover : MonoBehaviour
 	void Update () 
 	{
 		if (waypointsHolder == null)  return;
+
 
 		bool collisionPrevented = false;
 		RaycastHit hit;
@@ -167,7 +167,9 @@ public class WaypointMover : MonoBehaviour
 				targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
 				transform.LookAt(targetPosition);
 				targetPosition = IgnorePositionByAxis(targetPosition);
-			}  
+				Debug.Log("dddddddddddddddddddd");
+			}
+ 
 
 
 
@@ -194,10 +196,12 @@ public class WaypointMover : MonoBehaviour
 
 				// Select next waypoint according to direction 
 				previousWaypoint = currentWaypoint;
+
 				currentWaypoint += direction;
 				onWaypoint = true;
 				// currentWaypoint = Random.Range(0, waypointsHolder.waypoints.Length);
 
+				Debug.Log(currentWaypoint + " 1111111111111" + Time.frameCount.ToString());
 
 				// Choose next waypoint/actions according to loopingType, if object reaches first or last  waypoint
 				if(currentWaypoint > waypointsHolder.waypoints.Count-1 || currentWaypoint<0)
@@ -208,7 +212,8 @@ public class WaypointMover : MonoBehaviour
 							break;
 
 						case LoopType.Cycled:
-							currentWaypoint = currentWaypoint < 0 ? waypointsHolder.waypoints.Count-1 : 0; 
+							currentWaypoint = currentWaypoint < 0 ? waypointsHolder.waypoints.Count-1 : 0;
+							Debug.Log(currentWaypoint + " 222222" + Time.frameCount.ToString());
 							break;
 
 						case LoopType.PingPong:
@@ -232,7 +237,8 @@ public class WaypointMover : MonoBehaviour
 				if(currentWaypoint >= 0  &&  waypointsHolder.waypoints[currentWaypoint])
 				{  	 
 					targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
-					targetPosition = IgnorePositionByAxis(targetPosition); 
+					targetPosition = IgnorePositionByAxis(targetPosition);
+					Debug.Log(1111111111 + Time.frameCount.ToString());
 				}
 				else
 					if (currentWaypoint < waypointsHolder.waypoints.Count  &&  currentWaypoint >= 0)
@@ -247,8 +253,8 @@ public class WaypointMover : MonoBehaviour
 			else  // When object leaves waypoint - try to call function(specified in waypoint "callExitFunction" parameter) in object
 			{
 				onWaypoint = false;
-
-				if(waypointsHolder.waypoints[previousWaypoint].callExitFunction != ""  &&  callExitFunction)
+				Debug.Log("bbfffffff");
+				if (waypointsHolder.waypoints[previousWaypoint].callExitFunction != ""  &&  callExitFunction)
 					if(Vector3.Distance(transform.position, waypointsHolder.waypoints[previousWaypoint].gameObject.transform.position) < waypointActivationDistance) 
 					{
 						SendMessage (waypointsHolder.waypoints[previousWaypoint].callExitFunction, SendMessageOptions.DontRequireReceiver); 
@@ -262,9 +268,12 @@ public class WaypointMover : MonoBehaviour
 			// Look at and dampen the rotation
 			if (followingType == FollowType.SmoothFacing)
 			{
+
 				Quaternion rotation = Quaternion.LookRotation(targetPosition - transform.position);
 				transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * damping);
 				transform.Translate(Vector3.forward*movementSpeed*Time.deltaTime);
+
+				Debug.Log(22222);
 			}
 
 			// Just Look at	
@@ -272,6 +281,7 @@ public class WaypointMover : MonoBehaviour
 			{
 				transform.LookAt(targetPosition);
 				transform.Translate(Vector3.forward*movementSpeed*Time.deltaTime);
+				Debug.Log(3333);
 			}
 
 			// Inverted Look at	
@@ -280,6 +290,7 @@ public class WaypointMover : MonoBehaviour
 				transform.LookAt(targetPosition);
 				transform.Rotate(Vector3.up, 180);
 				transform.Translate(-Vector3.forward*movementSpeed*Time.deltaTime);
+				Debug.Log(44444);
 			}
 
 
@@ -339,6 +350,8 @@ public class WaypointMover : MonoBehaviour
 				transform.position = targetPosition;
 
 
+			Debug.Log(currentWaypoint + "   " + previousWaypoint + "   " + Time.frameCount.ToString());
+
 			float value = Vector3.Distance(waypointsHolder.waypoints[previousWaypoint].gameObject.transform.position, waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position);  
 			value = Vector3.Distance(transform.position, targetPosition) / value;  
 
@@ -354,7 +367,7 @@ public class WaypointMover : MonoBehaviour
 		
 	}
 
-	public void ResetCurrentPositionWhenChangeHolder()
+	public void ResetCurrentPositionWhenChangeHolder(GameObject chanegPoint)
 	{
 		if (StartFromNearestWaypoint)
 		{
@@ -366,33 +379,58 @@ public class WaypointMover : MonoBehaviour
 
 			for (int i = 0; i < waypointsHolder.waypoints.Count; i++)
 			{
-				waypointPosition = waypointsHolder.waypoints[i].gameObject.transform.position;
-				waypointPosition = IgnorePositionByAxis(waypointPosition);
+                if (chanegPoint!=null)
+                {
 
-				distance = Vector3.Distance(transform.position, waypointPosition);
-				if (distance < previousSmallestDistance)
-				{
-					nearestWaypointID = i;
-					previousSmallestDistance = distance;
+			   Debug.Log(waypointsHolder.name + " ggggg "+ chanegPoint.name + " " + Time.frameCount.ToString());
+					Debug.Log(currentWaypoint + " jjjjj " + waypointsHolder.waypoints[i].gameObject.name + " " + Time.frameCount.ToString());
+					if (waypointsHolder.GetComponent<PathGenerator>().Points[i] == chanegPoint)
+					{
+
+						currentWaypoint = i;
+						previousWaypoint = waypointsHolder.waypoints.Count - 1;
+						Debug.Log(currentWaypoint + " pppp " + chanegPoint.name + " " + Time.frameCount.ToString());
+
+					}
 				}
 
+                else
+                {
+					waypointPosition = waypointsHolder.waypoints[i].gameObject.transform.position;
+					waypointPosition = IgnorePositionByAxis(waypointPosition);
+
+					distance = Vector3.Distance(transform.position, waypointPosition);
+					if (distance < previousSmallestDistance)
+					{
+						nearestWaypointID = i;
+						previousSmallestDistance = distance;
+					}
+				}
+	
 			}
 
-			currentWaypoint = nearestWaypointID;
-
-			//if current alreday in the nearest point then move nearest point to be next
-			float newDistance = Vector3.Distance(transform.position, IgnorePositionByAxis( waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position));
-			Debug.Log(newDistance + "dfdfsdfsd");
-			if (newDistance == 0)
+            if (chanegPoint==null)
             {
-				currentWaypoint++;
-				Debug.Log("dfdfsdfsd");
+				//can only move forward
+                if (currentWaypoint < nearestWaypointID)
+                {
+					currentWaypoint = nearestWaypointID;
+					previousWaypoint = currentWaypoint;
+				}
+			
 			}
 
-			Debug.Log(nearestWaypointID + "Nearet Point 1111111111111");
+
+            if (chanegPoint)
+            {
+				Debug.Log(currentWaypoint + " dddd " + chanegPoint.name + " " + Time.frameCount.ToString());
+			}
+
 
 			targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
 			targetPosition = IgnorePositionByAxis(targetPosition);
+
+			Debug.Log("88888888888888");
 		}
 	
 	}
@@ -402,6 +440,7 @@ public class WaypointMover : MonoBehaviour
 	public void ReverseDirection () 
 	{
 		previousWaypoint = currentWaypoint;
+
 		direction = -direction;
 
 		currentWaypoint =  direction > 0 ? currentWaypoint+1 : currentWaypoint-1;
@@ -413,6 +452,9 @@ public class WaypointMover : MonoBehaviour
 				currentWaypoint = 0; 
 
 		targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
+
+		Debug.Log(currentWaypoint + " rrrrrrrrrr " + Time.frameCount.ToString());
+
 	}
 
 	//----------------------------------------------------------------------------------
@@ -420,7 +462,9 @@ public class WaypointMover : MonoBehaviour
 	public void SetDirection (int _direction) 
 	{
 		previousWaypoint = currentWaypoint;
+
 		currentWaypoint =  _direction > 0 ? currentWaypoint+1 : currentWaypoint-1; 
+
 
 		if (currentWaypoint < 0) 
 			currentWaypoint =  waypointsHolder.waypoints.Count-1; 
@@ -429,6 +473,8 @@ public class WaypointMover : MonoBehaviour
 				currentWaypoint = 0; 
 
 		targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
+
+		Debug.Log(currentWaypoint + " llllllllll " + Time.frameCount.ToString());
 	}
 
 	//----------------------------------------------------------------------------------
@@ -445,6 +491,8 @@ public class WaypointMover : MonoBehaviour
 		currentWaypoint = previousWaypoint;
 		transform.position = waypointsHolder.waypoints[previousWaypoint].gameObject.transform.position;
 		targetPosition = waypointsHolder.waypoints[previousWaypoint].gameObject.transform.position;
+
+		Debug.Log(currentWaypoint + " 777777777 " + Time.frameCount.ToString());
 	}
 
 	//----------------------------------------------------------------------------------

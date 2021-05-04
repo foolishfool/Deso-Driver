@@ -14,6 +14,9 @@ public class Point : MonoBehaviour
     public List<WaypointsHolder> BelongedWaypointHolders;
     //the waypointhodlers which the lead to  parent change point
     public List<WaypointsHolder> ParentHolders = new List<WaypointsHolder>();
+    public List<WaypointsHolder> HoldersSamewithTarget = new List<WaypointsHolder>();
+    [HideInInspector]
+    public bool IsSameLineWithTargetButNotTarget;
 
     // Start is called before the first frame update
     void Start()
@@ -49,17 +52,31 @@ public class Point : MonoBehaviour
             }
 
         }
-        Debug.Log(StartPoint.gameObject.name + "  No way point Holder ! to " + gameObject.name);
+       // Debug.Log(StartPoint.gameObject.name + "  No way point Holder  to " + gameObject.name);
         return null;
     }
 
 
     public void GetParentHolders()
     {
+        //RESET
+        ParentHolders.Clear();
+
         if (ParentChangePoint == null)
         {
-            //***if ParentChangePoint is null, neans ParentChangePoint is not set value through GetSolutionLine and means do not need to transfer to other path just folow currwent path is OK
+            //***if ParentChangePoint is null, means ParentChangePoint is not set value through GetSolutionLine and means do not need to transfer to other path just follow currwent path is OK
             ParentChangePoint = gameObject;
+
+            for (int i = 0; i < BelongedWaypointHolders.Count; i++)
+            {         
+                //return a hoder that contains both start and target
+                if (WayPointHasObj(BelongedWaypointHolders[i], GameController.Instance.CurrentPositionObj))
+                {
+                    ParentHolders.Add( BelongedWaypointHolders[i]);
+                }
+
+            }
+            return;
         }
         for (int j = 0; j < BelongedWaypointHolders.Count; j++)
         {
@@ -68,6 +85,24 @@ public class Point : MonoBehaviour
 
     }
 
+
+
+    public void GetHoldersSamewithTarget()
+    {
+        //RESET
+        HoldersSamewithTarget.Clear();
+
+        for (int i = 0; i < BelongedWaypointHolders.Count; i++)
+        {
+            //return a hoder that contains both start and target
+            if (WayPointHasObj(BelongedWaypointHolders[i], GameController.Instance.TargetPoint))
+            {
+                HoldersSamewithTarget.Add(BelongedWaypointHolders[i]);
+            }
+
+        }
+
+    }
 
     public void GetSharedLineWithparentPoint(WaypointsHolder givenHolder)
     {
@@ -166,6 +201,34 @@ public class Point : MonoBehaviour
     public int GetWaypointNumToParent(WaypointsHolder holder)
     {
         return holder.GetWayPointsNumBetweenTwoPoint(gameObject.GetComponent<Waypoint>(), ParentChangePoint.GetComponent<Waypoint>());
+    }
+    public int GetWaypointNumToTarget(WaypointsHolder holder)
+    {
+        return holder.GetWayPointsNumBetweenTwoPoint(gameObject.GetComponent<Waypoint>(), GameController.Instance.TargetPoint.GetComponent<Waypoint>());
+    }
+
+    public WaypointsHolder GetBestHolderContainsTargetandFirstchangePoint()
+    {
+
+        GetHoldersSamewithTarget();
+
+        //if click a target do not belong to any path
+        if (HoldersSamewithTarget.Count>0)
+        {
+            int minWayPointNum = GetWaypointNumToTarget(HoldersSamewithTarget[0]);
+            int minNumPathIndex = 0;
+            for (int i = 0; i < HoldersSamewithTarget.Count; i++)
+            {
+                if (minWayPointNum > GetWaypointNumToTarget(HoldersSamewithTarget[i]))
+                {
+                    minNumPathIndex = i;
+                }
+            }
+
+            return HoldersSamewithTarget[minNumPathIndex];
+        }
+
+        return null;
     }
 
 }

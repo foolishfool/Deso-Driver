@@ -39,7 +39,7 @@ public class Indicator : MonoBehaviour
         distanceText = transform.GetComponentInChildren<Text>();
         if (indicatorType == IndicatorType.ARROW)
         {
-            GetComponent<Button>().onClick.AddListener(()=>GameController.Instance.Car.GetComponent<CarController>().SelfNavAgent.SetDestination(BelongedPickup.transform.position));
+          //  GetComponent<Button>().onClick.AddListener(()=>GameController.Instance.Car.GetComponent<CarController>().SelfNavAgent.SetDestination(BelongedPickup.transform.position));
         } 
        
     }
