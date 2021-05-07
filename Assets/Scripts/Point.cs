@@ -52,7 +52,7 @@ public class Point : MonoBehaviour
             }
 
         }
-       // Debug.Log(StartPoint.gameObject.name + "  No way point Holder  to " + gameObject.name);
+        Debug.Log(StartPoint.gameObject.name + " has No way point Holder  to " + gameObject.name);
         return null;
     }
 
@@ -136,13 +136,11 @@ public class Point : MonoBehaviour
 
     public bool WayPointHasObj(WaypointsHolder holder, GameObject point)
     {
-        for (int i = 0; i < holder.waypoints.Count; i++)
+        //*** cannot use holder.waypoints, as waypoint is daynamical created does not have belongedobj
+        if (holder.GetComponent<PathGenerator>().Points.Contains(point))
         {
-            if (holder.waypoints[i].belongedObj == point)
-            {
-                return true;
-            }
-        }
+            return true;
+        } 
 
         return false;
     }
@@ -151,18 +149,8 @@ public class Point : MonoBehaviour
     public GameObject GetNearestChangePointInOneLine(WaypointsHolder holder)
     {
         int pointIndex = 0;
-        float currentDistance = 0;
-        for (int i = 0; i < holder.waypoints.Count; i++)
-        {
-            if (holder.waypoints[i].belongedObj.GetComponent<Point>().BelongedWaypointHolders.Count > 1)
-            {
-                pointIndex = i;
-                currentDistance = Vector3.Distance(holder.waypoints[i].belongedObj.transform.position, transform.position);
-                goto EndLoopForInitializeCurrentDistance;
-            }
-        }
+        float currentDistance = Mathf.Infinity;
 
-        EndLoopForInitializeCurrentDistance:
 
         for (int i = 0; i < holder.waypoints.Count; i++)
         {
@@ -185,6 +173,7 @@ public class Point : MonoBehaviour
     {
 
         GetParentHolders();
+        Debug.Log(gameObject.name + " GetBestHolderToParentchangePoint ");
         int minWayPointNum = GetWaypointNumToParent(ParentHolders[0]);
         int minNumPathIndex = 0;
         for (int i = 0; i < ParentHolders.Count; i++)
@@ -221,6 +210,7 @@ public class Point : MonoBehaviour
             {
                 if (minWayPointNum > GetWaypointNumToTarget(HoldersSamewithTarget[i]))
                 {
+                    minWayPointNum = GetWaypointNumToTarget(HoldersSamewithTarget[i]);
                     minNumPathIndex = i;
                 }
             }

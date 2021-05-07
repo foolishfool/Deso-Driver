@@ -34,11 +34,11 @@ public class CarController : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Point"))
         {
-            Debug.Log(other.gameObject.name + "  Enconter !" );
+            Debug.Log(other.gameObject.name + "  Enconter !  " + Time.frameCount );
             if (other.gameObject == GameController.Instance.TargetPoint)
             {
             
-                Debug.Log(GameController.Instance.TargetPoint.name);
+                Debug.Log(GameController.Instance.TargetPoint.name + "Enter Target Point");
                 GetComponent<WaypointMover>().movementSpeed = 0;
                 Sequence = DOTween.Sequence();
                 Sequence.Append (transform.DOMove(other.gameObject.transform.position,1f));
@@ -53,10 +53,10 @@ public class CarController : MonoBehaviour
 
                     if (GameController.Instance.BestSolution.Count == 0)
                     {
-                        //in this situation, there is no bestsolution, as tartet and start in the same line just need to move follow current line is OK
+                        //in this situation, there is no bestsolution, as target and start in the same line just need to move follow current line is OK
                         return;
                     }
-
+                    //if reach change point
                     if (other.gameObject == GameController.Instance.BestSolution.First().First().Value.gameObject)
                     {
                                       

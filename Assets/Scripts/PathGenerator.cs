@@ -25,7 +25,10 @@ public class PathGenerator : MonoBehaviour
         for (int i = 0; i < Points.Count; i++)
         {
             wayPointHolder.CreateWaypoint(Points[i].transform.position,"waypoint", Points[i]);
-            Points[i].GetComponent<Point>().BelongedWaypointHolders.Add(wayPointHolder);
+            //***for the first and last point are the same but can only count as one line
+            if (!Points[i].GetComponent<Point>().BelongedWaypointHolders.Contains(wayPointHolder))
+                Points[i].GetComponent<Point>().BelongedWaypointHolders.Add(wayPointHolder);
+
         }
     }
 

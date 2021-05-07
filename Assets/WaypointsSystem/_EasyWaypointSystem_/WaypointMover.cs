@@ -156,18 +156,18 @@ public class WaypointMover : MonoBehaviour
 				}
 			}
 			else
-				movementSpeed = initialMovementSpeed; 
+				movementSpeed = initialMovementSpeed;
 
-
+		//Debug.Log( " waypointsHolder" + waypointsHolder.name + " currentWaypoint " + currentWaypoint + "  " +  Time.frameCount);
 
 		// Respect current Waypoint position-update dynamicaly (even if mover is already on the way to this waypoint)
-		if (dynamicWaypointsUpdate  &&  currentWaypoint >= 0) 
-			if(targetPosition != waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position)
-			{       
+		if (dynamicWaypointsUpdate && currentWaypoint >= 0)
+			if (targetPosition != waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position)
+			{
 				targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
 				transform.LookAt(targetPosition);
 				targetPosition = IgnorePositionByAxis(targetPosition);
-				Debug.Log("dddddddddddddddddddd");
+				//Debug.Log("Lookat TargetPosiiton   target poisiton is currentWaypoint  "  + currentWaypoint + "   " + Time.frameCount);
 			}
  
 
@@ -181,6 +181,11 @@ public class WaypointMover : MonoBehaviour
 			// Activate waypoint when object is closer than waypointActivationDistance
 			if(Vector3.Distance(transform.position, targetPosition) < waypointActivationDistance) 
 			{
+				//*** if already stop do not auto change currentwaypoint
+                if (movementSpeed == 0)
+                {
+					return;
+                }
 				// Init delay if it's specified in waypoint
 				if (waypointsHolder.waypoints[currentWaypoint].delay > 0) 
 					delayTillTime = Time.time + waypointsHolder.waypoints[currentWaypoint].delay;
@@ -201,7 +206,7 @@ public class WaypointMover : MonoBehaviour
 				onWaypoint = true;
 				// currentWaypoint = Random.Range(0, waypointsHolder.waypoints.Length);
 
-				Debug.Log(currentWaypoint + " 1111111111111" + Time.frameCount.ToString());
+				//Debug.Log(currentWaypoint + " currentWaypoint  " + Time.frameCount.ToString());
 
 				// Choose next waypoint/actions according to loopingType, if object reaches first or last  waypoint
 				if(currentWaypoint > waypointsHolder.waypoints.Count-1 || currentWaypoint<0)
@@ -212,8 +217,14 @@ public class WaypointMover : MonoBehaviour
 							break;
 
 						case LoopType.Cycled:
+							//if alreay reach taret do not need to go back to 0
+							//use previousWaypoint as currentWaypoint is more than  waypointsHolder.waypoints.Count-1
+							if (waypointsHolder.waypoints[previousWaypoint].belongedObj == GameController.Instance.TargetPoint)
+                            {
+								currentWaypoint = previousWaypoint;
+								return;
+                            }
 							currentWaypoint = currentWaypoint < 0 ? waypointsHolder.waypoints.Count-1 : 0;
-							Debug.Log(currentWaypoint + " 222222" + Time.frameCount.ToString());
 							break;
 
 						case LoopType.PingPong:
@@ -238,7 +249,8 @@ public class WaypointMover : MonoBehaviour
 				{  	 
 					targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
 					targetPosition = IgnorePositionByAxis(targetPosition);
-					Debug.Log(1111111111 + Time.frameCount.ToString());
+
+
 				}
 				else
 					if (currentWaypoint < waypointsHolder.waypoints.Count  &&  currentWaypoint >= 0)
@@ -253,13 +265,12 @@ public class WaypointMover : MonoBehaviour
 			else  // When object leaves waypoint - try to call function(specified in waypoint "callExitFunction" parameter) in object
 			{
 				onWaypoint = false;
-				Debug.Log("bbfffffff");
-				if (waypointsHolder.waypoints[previousWaypoint].callExitFunction != ""  &&  callExitFunction)
-					if(Vector3.Distance(transform.position, waypointsHolder.waypoints[previousWaypoint].gameObject.transform.position) < waypointActivationDistance) 
-					{
-						SendMessage (waypointsHolder.waypoints[previousWaypoint].callExitFunction, SendMessageOptions.DontRequireReceiver); 
-						callExitFunction = false;
-					}
+			//	if (waypointsHolder.waypoints[previousWaypoint].callExitFunction != ""  &&  callExitFunction)
+			//		if(Vector3.Distance(transform.position, waypointsHolder.waypoints[previousWaypoint].gameObject.transform.position) < waypointActivationDistance) 
+			//		{
+			//			SendMessage (waypointsHolder.waypoints[previousWaypoint].callExitFunction, SendMessageOptions.DontRequireReceiver); 
+			//			callExitFunction = false;
+			//		}
 			}
 
 
@@ -273,7 +284,7 @@ public class WaypointMover : MonoBehaviour
 				transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * damping);
 				transform.Translate(Vector3.forward*movementSpeed*Time.deltaTime);
 
-				Debug.Log(22222);
+				//Debug.Log("SmoothFacing transform.rotation to   Quaternion.LookRotation(targetPosition - transform.position);  " + Time.frameCount);
 			}
 
 			// Just Look at	
@@ -281,7 +292,6 @@ public class WaypointMover : MonoBehaviour
 			{
 				transform.LookAt(targetPosition);
 				transform.Translate(Vector3.forward*movementSpeed*Time.deltaTime);
-				Debug.Log(3333);
 			}
 
 			// Inverted Look at	
@@ -290,7 +300,6 @@ public class WaypointMover : MonoBehaviour
 				transform.LookAt(targetPosition);
 				transform.Rotate(Vector3.up, 180);
 				transform.Translate(-Vector3.forward*movementSpeed*Time.deltaTime);
-				Debug.Log(44444);
 			}
 
 
@@ -348,18 +357,21 @@ public class WaypointMover : MonoBehaviour
 
 			if (followingType == FollowType.Teleport) 
 				transform.position = targetPosition;
+  			 
+
+			//Debug.Log(currentWaypoint + "   " + previousWaypoint + "   " + Time.frameCount.ToString());
+
+			//float value = Vector3.Distance(waypointsHolder.waypoints[previousWaypoint].gameObject.transform.position, waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position);  
+			//value = Vector3.Distance(transform.position, targetPosition) / value;  
+			// axis shouldn't rotate
+			//transform.localEulerAngles = new Vector3 (
+			//			transform.localEulerAngles.x,
+			//			transform.localEulerAngles.y,
+			//			Mathf.Lerp(waypointsHolder.waypoints[previousWaypoint].angle, waypointsHolder.waypoints[currentWaypoint].angle, 1.0f - value)
+			//		);
 
 
-			Debug.Log(currentWaypoint + "   " + previousWaypoint + "   " + Time.frameCount.ToString());
-
-			float value = Vector3.Distance(waypointsHolder.waypoints[previousWaypoint].gameObject.transform.position, waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position);  
-			value = Vector3.Distance(transform.position, targetPosition) / value;  
-
-			transform.localEulerAngles = new Vector3 (
-						transform.localEulerAngles.x,
-						transform.localEulerAngles.y,
-						Mathf.Lerp(waypointsHolder.waypoints[previousWaypoint].angle, waypointsHolder.waypoints[currentWaypoint].angle, 1.0f - value)
-					);			 
+			//Debug.Log("localEulerAngles is set from prevouspoit " + previousWaypoint + "  to current point" + currentWaypoint + "  " + Time.frameCount);
 
 		}
 		else 
@@ -367,7 +379,7 @@ public class WaypointMover : MonoBehaviour
 		
 	}
 
-	public void ResetCurrentPositionWhenChangeHolder(GameObject chanegPoint)
+	public void ResetCurrentPositionWhenChangeHolder(GameObject changePoint)
 	{
 		if (StartFromNearestWaypoint)
 		{
@@ -376,26 +388,34 @@ public class WaypointMover : MonoBehaviour
 			int nearestWaypointID = 0;
 			float previousSmallestDistance = Mathf.Infinity;
 			float distance;
-
+			if(waypointsHolder)
 			for (int i = 0; i < waypointsHolder.waypoints.Count; i++)
 			{
-                if (chanegPoint!=null)
+				//reset currentWaypoint
+				if (changePoint!=null)
                 {
-
-			   Debug.Log(waypointsHolder.name + " ggggg "+ chanegPoint.name + " " + Time.frameCount.ToString());
-					Debug.Log(currentWaypoint + " jjjjj " + waypointsHolder.waypoints[i].gameObject.name + " " + Time.frameCount.ToString());
-					if (waypointsHolder.GetComponent<PathGenerator>().Points[i] == chanegPoint)
+					//if the changepoint in the holder, make currentwaypoint to be the changepoint
+			     //   Debug.Log(waypointsHolder.name + " ggggg "+ changePoint.name + " " + Time.frameCount.ToString());
+				//	Debug.Log(currentWaypoint + " jjjjj " + waypointsHolder.waypoints[i].gameObject.name + " " + Time.frameCount.ToString());
+					if (waypointsHolder.GetComponent<PathGenerator>().Points[i] == changePoint)
 					{
 
 						currentWaypoint = i;
-						previousWaypoint = waypointsHolder.waypoints.Count - 1;
-						Debug.Log(currentWaypoint + " pppp " + chanegPoint.name + " " + Time.frameCount.ToString());
+					   if (i - 1 < 0)
+					   {
+					   	previousWaypoint = waypointsHolder.waypoints.Count - 1;
+					   }
+							else previousWaypoint = i - 1;
+
+
+						Debug.Log(currentWaypoint + " pppp " + changePoint.name + " " + Time.frameCount.ToString());
 
 					}
 				}
 
                 else
                 {
+					//change currentwaypoint to be the nearest one
 					waypointPosition = waypointsHolder.waypoints[i].gameObject.transform.position;
 					waypointPosition = IgnorePositionByAxis(waypointPosition);
 
@@ -409,28 +429,44 @@ public class WaypointMover : MonoBehaviour
 	
 			}
 
-            if (chanegPoint==null)
+            if (changePoint==null)
             {
+				//means current line is the last line we just contine move forward
+				//as it is alreay change to new holder currentwaypint need to change to the pointnumber in new holder
 				//can only move forward
-                if (currentWaypoint < nearestWaypointID)
+      
+				previousWaypoint = nearestWaypointID-1;
+                if (previousWaypoint<0)
                 {
-					currentWaypoint = nearestWaypointID;
-					previousWaypoint = currentWaypoint;
+					previousWaypoint = waypointsHolder.waypoints.Count - 1;
+					Debug.Log("previousWaypoint  is set as waypointsHolder.waypoints.Count - 1 : " + previousWaypoint);
+					//only can move to one direction
+                    if (waypointsHolder.isNotCirclePath)
+                    {
+						previousWaypoint = nearestWaypointID;
+						Debug.Log("isNotCirclePath previousWaypoint  is reset  : nearestWaypointID" + previousWaypoint);
+					}
 				}
+				currentWaypoint = nearestWaypointID;
+					
+				Debug.Log("changePoint == null  currentwayopint  is changed to nearestWaypointID :" + waypointsHolder.GetComponent <PathGenerator>().Points[currentWaypoint].name + " " + Time.frameCount );
+
 			
 			}
 
 
-            if (chanegPoint)
+            if (changePoint)
             {
-				Debug.Log(currentWaypoint + " dddd " + chanegPoint.name + " " + Time.frameCount.ToString());
+				Debug.Log(currentWaypoint + " dddd " + changePoint.name + " " + Time.frameCount.ToString());
 			}
+            if (waypointsHolder)
+				Debug.Log(currentWaypoint + " eee " + waypointsHolder.name + " " + Time.frameCount.ToString());
 
 
-			targetPosition = waypointsHolder.waypoints[currentWaypoint].gameObject.transform.position;
+
+
 			targetPosition = IgnorePositionByAxis(targetPosition);
 
-			Debug.Log("88888888888888");
 		}
 	
 	}

@@ -46,6 +46,10 @@ public class GameController : MonoBehaviour
     //first line needs to do
     [HideInInspector]
     public List<WaypointsHolder> InitialHolders;
+
+    List<GameObject> allNearestChangePoints = new List<GameObject>();
+
+    int count = 0;
     public static GameController Instance
     {
         get
@@ -99,25 +103,50 @@ public class GameController : MonoBehaviour
         {
             if (hit.collider.gameObject.CompareTag("Floor"))
             {
+                count = 0;
                 float currentY = Car.gameObject.transform.position.y;
                 Vector3 newPos = new Vector3(hit.point.x, currentY, hit.point.z);
                 Vector3 newPos2 = new Vector3(hit.point.x, currentY+5, hit.point.z);
 
-                Transform destinationpos = GetNearPoint(newPos2);
-                TargetPoint = GetNearestPointObj(newPos2);
-                Debug.Log(TargetPoint.name + "  New Tareget ");
+                Transform effectPosition = GetNearestPoint(newPos2);
+                TargetPoint = GetNearestPointObj(newPos);
+                Debug.Log(TargetPoint.name + "  New Tareget " + Time.frameCount);
                 CurrentPositionObj = GetNearestPointObj(Car.gameObject.transform.position);
                 TargetPoint.GetComponent<Point>().StartPoint = CurrentPositionObj;
-                Instantiate(HitEffect, destinationpos.position, Quaternion.identity);
+                Instantiate(HitEffect, effectPosition.position, Quaternion.identity);
 
+                //reset
                 for (int i = 0; i < AllpointshaveParent.Count; i++)
                 {
                     if (AllpointshaveParent[i].ParentChangePoint)
                     {
                         AllpointshaveParent[i].ParentChangePoint = null;
+             
                     }
               
                 }
+                allNearestChangePoints.Clear();
+
+                if (CurrentPositionObj == TargetPoint)
+                {
+                    return;
+                }
+                //cannot go back for uncircle path
+                if (Car.GetComponent<WaypointMover>().waypointsHolder)
+                {
+                    if (Car.GetComponent<WaypointMover>().waypointsHolder.isNotCirclePath)
+                    {
+                        if(Car.GetComponent<WaypointMover>().waypointsHolder.GetComponent<PathGenerator>().Points.Contains(TargetPoint))
+                        if (Car.GetComponent<WaypointMover>().waypointsHolder.GetComponent<PathGenerator>().Points.IndexOf(TargetPoint) < Car.GetComponent<WaypointMover>().waypointsHolder.GetComponent<PathGenerator>().Points.IndexOf(CurrentPositionObj))
+                        {
+                            //cannot go back and 
+                            Instantiate(HitEffect2, effectPosition.position, Quaternion.identity);
+                            return;
+                        }
+                    }
+
+                }
+      
 
                 if (TargetPoint.GetComponent<Point>().BelongedWaypointHolders.Count!= 0)
                 {
@@ -168,7 +197,7 @@ public class GameController : MonoBehaviour
     }
 
 
-    private Transform GetNearPoint(Vector3 position)
+    private Transform GetNearestPoint(Vector3 position)
     {
         int pointIndex = 0;
         float currentDistance =
@@ -208,34 +237,32 @@ public class GameController : MonoBehaviour
     //one slution means all the pointset should be in this solution
     public void GetSolutionLine(Point start, Point end)
     {
-        if (end.IfTwoPointsInTheSamePath(start) != null)
+      
+        Debug.Log("GetSolutonLine () from start " + start.gameObject.name + " to end " + end.gameObject.name);
+        if (end.IfTwoPointsInTheSamePath(start) != null) 
         {
             //caanot set end.ParentChangePoint = end.gameObject; only last changepoint in solution has this 
             // end.ParentChangePoint = end.gameObject;
-            Debug.Log("Reach End!");
+            Debug.Log("Reach End!  " + Time.frameCount);
             //get best solution
 
                 //means target and start in the same line
-                //
              GetOneSolutionFromEndChangePoint(end, null);
 
-         
-            
+
         }
         else
 
         {
 
-            List<GameObject> allNearestChangePoints = new List<GameObject>();
-            GameObject nearestChangePoint = new GameObject();
-
             for (int i = 0; i < end.BelongedWaypointHolders.Count; i++)
             {
               //  Debug.Log(end.BelongedWaypointHolders[i].name + "Path name");
                //get the nearest change point (point that have more than one paths) from start to last path
-                GameObject nearestChangePointToALine = start.GetNearestChangePointInOneLine(end.BelongedWaypointHolders[i]);
-         
-                allNearestChangePoints.Add(nearestChangePointToALine);
+              GameObject   nearestChangePointToALine = start.GetNearestChangePointInOneLine(end.BelongedWaypointHolders[i]);
+
+                if (!allNearestChangePoints.Contains(nearestChangePointToALine))
+                    allNearestChangePoints.Add(nearestChangePointToALine);
 
                 //if nearestChangePointToALine is not in the same line with target
                 //apply parentchangepoint for each change point , which will be used in future best solution get
@@ -245,13 +272,14 @@ public class GameController : MonoBehaviour
                 {
                     nearestChangePointToALine.GetComponent<Point>().ParentChangePoint = end.gameObject;
 
-
+                    Debug.Log(nearestChangePointToALine.name + " Is Applied Parent Point : " + end.gameObject.name + Time.frameCount);
                 }
                 else
                 {
 
                     //ParentChangePoint is itself
                     nearestChangePointToALine.GetComponent<Point>().ParentChangePoint = nearestChangePointToALine;
+                    Debug.Log(nearestChangePointToALine.name + " Is Appled Parent Point : " + nearestChangePointToALine.name + Time.frameCount);
                     if (nearestChangePointToALine != TargetPoint)
                     {
                         nearestChangePointToALine.GetComponent<Point>().IsSameLineWithTargetButNotTarget = true;
@@ -272,7 +300,7 @@ public class GameController : MonoBehaviour
                 }        
             }
 
-            nearestChangePoint = allNearestChangePoints[nearIndex].gameObject;
+            GameObject nearestChangePoint = allNearestChangePoints[nearIndex].gameObject;
 
           // Debug.Log("nearestChangePointToALine " + nearestChangePoint.name);
           //  Debug.Log("Get One parent chage point " + nearestChangePoint.GetComponent<Point>().ParentChangePoint.name);
@@ -281,8 +309,20 @@ public class GameController : MonoBehaviour
             {
                 AllpointshaveParent.Add(nearestChangePoint.GetComponent<Point>());
             }
-
-           GetSolutionLine(start, nearestChangePoint.GetComponent<Point>());
+            if (end.gameObject == nearestChangePoint)
+            {
+                Instantiate(HitEffect2, end.gameObject.transform.position, Quaternion.identity);
+                return;
+                Debug.Log("No path to get to this point !");
+            }
+            count++;
+            if (count>40)
+            {
+                Debug.Log(nearestChangePoint.GetComponent<Point>().name + " Out of Loop");
+                return;
+            }
+            Debug.Log(nearestChangePoint.GetComponent<Point>().name + " One Loop");
+          GetSolutionLine(start, nearestChangePoint.GetComponent<Point>());
 
         }
     }
@@ -340,21 +380,38 @@ public class GameController : MonoBehaviour
         if (BestSolution.Count == 0)
         {
             //in this situation target is in the same line with start and bestsolution is no apply and just apply the common holder to car
+            Debug.Log("Target is in the same line with start " + Time.frameCount);
+        
+            if (Car.GetComponent<WaypointMover>().waypointsHolder)
+            {
+                return;
+            }
+            //set holder to be the line have target
+            Car.GetComponent<WaypointMover>().waypointsHolder = CurrentPositionObj.GetComponent<Point>().IfTwoPointsInTheSamePath(TargetPoint.GetComponent<Point>());
+            //go from nearest point CurrentPositionObj is the nearest point
+            Car.GetComponent<WaypointMover>().ResetCurrentPositionWhenChangeHolder(CurrentPositionObj);
             return;
         }
 
         if (FirstChangePointIsSameLinewithTarget)
         {
-
+            Debug.Log(BestSolution.First().First().Key.name + "2222222");
             //set current hodler to be the one that contains both currentpositionobj and first chagnepoint
             Car.GetComponent<WaypointMover>().waypointsHolder = BestSolution.First().First().Value.GetBestHolderContainsTargetandFirstchangePoint();
         }
         else
+        {
+            Car.GetComponent<WaypointMover>().waypointsHolder = BestSolution.First().First().Key;
 
-         Car.GetComponent<WaypointMover>().waypointsHolder =  BestSolution.First().First().Key;
+            Debug.Log(BestSolution.First().First().Key.name  + "111111111111");
+        }
+       
+
+    
+        Debug.Log("Set Initial Path " + Car.GetComponent<WaypointMover>().waypointsHolder.name);
         //go from nearest point
         Car.GetComponent<WaypointMover>().ResetCurrentPositionWhenChangeHolder(null);
-        Debug.Log("Set Initial Path " + Car.GetComponent<WaypointMover>().waypointsHolder.name);
+
     }
 
 
@@ -373,30 +430,36 @@ public class GameController : MonoBehaviour
             //continue move on current 
             if (Car.GetComponent<WaypointMover>().waypointsHolder)
             {           //do nothing continue move on current line
+                Debug.Log("Do Nothing and keep on current line" + Time.frameCount);
                 return;
             }
             Car.GetComponent<WaypointMover>().waypointsHolder = endPoint.GetBestHolderContainsTargetandFirstchangePoint();
+            Debug.Log("Change holder !  to   " + Car.GetComponent<WaypointMover>().waypointsHolder.name + Time.frameCount);
             Car.GetComponent<WaypointMover>().ResetCurrentPositionWhenChangeHolder(null);
             return;
         }
             //to the targetpoint
            if (endPoint.ParentChangePoint == endPoint.gameObject)
             {
-              if (endPoint.IsSameLineWithTargetButNotTarget)
-              {
-                  FirstChangePointIsSameLinewithTarget = true;
-              }
+
               Dictionary<WaypointsHolder, Point> oneChangePoint = new Dictionary<WaypointsHolder, Point>();
               oneChangePoint.Add(endPoint.GetBestHolderToParentchangePoint(), endPoint);
-              Debug.Log(endPoint.GetBestHolderToParentchangePoint().name + " PPly " + endPoint.gameObject.name);
+              Debug.Log("Add holder:" +  endPoint.GetBestHolderToParentchangePoint().name + " changepoint: " + endPoint.gameObject.name + "To solution ");
 
             //get bestSolution 
-     
+
                 oneSolution.Add(oneChangePoint);
                 BestSolution = oneSolution;
-                //reset
-                endPoint.IsSameLineWithTargetButNotTarget = false;
-                Debug.Log("Get Best Solution!");
+
+            if (BestSolution.First().First().Value.IsSameLineWithTargetButNotTarget)
+            {
+                FirstChangePointIsSameLinewithTarget = true;
+            }
+            //reset
+            endPoint.IsSameLineWithTargetButNotTarget = false;
+
+
+            Debug.Log("Get Best Solution!");
             }
             else
             {

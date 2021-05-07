@@ -10,7 +10,10 @@ public class WaypointsHolder : MonoBehaviour
 {
 	public Color color = new Color (0, 1, 0, 0.5f); 		// Debug path lines color
 	public List<Waypoint> waypoints = new List<Waypoint>();	// List of all waypoints assigned to this path
-	public bool colorizeWaypoints = true;   				// Repaint all waypoints in the color
+	public bool colorizeWaypoints = true;                   // Repaint all waypoints in the color
+	
+	//if not circle path means you cannot go back to its back point from current point
+	public bool isNotCirclePath;
 
 
 	//=============================================================================================================
