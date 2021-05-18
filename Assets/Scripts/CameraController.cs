@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Pathfinding.Examples;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ public class CameraController : MonoBehaviour
 
     RaycastHit[] hitInfos;
     private Material initialMaterial;
+    public Material TransparentMaterial;
+    public Material OpaqueMaterial;
     public GameObject Car;
     Dictionary<GameObject, Material> changedMaterials = new Dictionary<GameObject, Material>();
 
@@ -30,10 +33,12 @@ public class CameraController : MonoBehaviour
              if (!InHitList(item.Key, hitInfos))
              {
                  //reset to inital material
-                 Material newMaterial = new Material(Shader.Find("Legacy Shaders/Diffuse"));
-                 newMaterial.CopyPropertiesFromMaterial(item.Value);
+                 Material newMaterial = new Material(OpaqueMaterial);
+                newMaterial.SetTexture("_BaseMap", item.Value.GetTexture("_BaseMap"));
 
-                 SetWholeObjectMaterials(item.Key, newMaterial,false);        
+             
+                GameController.Instance.IsCameraLevelingUp = false;
+                SetWholeObjectMaterials(item.Key, newMaterial,false);        
              }        
          }
          changedMaterials.Clear();
@@ -48,12 +53,12 @@ public class CameraController : MonoBehaviour
             if (!changedMaterials.ContainsKey(hitInfos[i].collider.gameObject))
             {
                 changedMaterials.Add(hitInfos[i].collider.gameObject, initialMaterial);
-                Material newMaterial = new Material(Shader.Find("Legacy Shaders/Transparent/Diffuse"));
-                newMaterial.CopyPropertiesFromMaterial(initialMaterial);
-                Color transparentColor = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
-                newMaterial.color = transparentColor;
-                  SetWholeObjectMaterials(hitInfos[i].collider.gameObject, newMaterial,true);
-               // SetWholeObjectHide(hitInfos[i].collider.gameObject);
+                Material newMaterial = new Material(TransparentMaterial);
+                newMaterial.SetTexture("_BaseMap",initialMaterial.GetTexture("_BaseMap"));
+                // Color transparentColor = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
+                // newMaterial.color = transparentColor;
+                GameController.Instance.IsCameraLevelingUp = true;
+                SetWholeObjectMaterials(hitInfos[i].collider.gameObject, newMaterial,true);
  
             }
         }
@@ -80,7 +85,7 @@ public class CameraController : MonoBehaviour
     private void SetWholeObjectMaterials(GameObject smallPart, Material newMaterial, bool setLayer)
     {
 
-        if (smallPart.transform.parent.name != "Scene")
+        if (smallPart.transform.parent.name != "Scene" && !smallPart.gameObject.CompareTag("Floor"))
         {
             int index = smallPart.transform.parent.transform.childCount;
             if (setLayer)

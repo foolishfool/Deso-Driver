@@ -1,0 +1,47 @@
+Twirl Effect Manual. 
+
+
+///
+
+Limitless Twirl Effect on Itch.io - https://limitless-development.itch.io/twirl-effect
+
+ 
+========
+
+SRP support
+
+Limitless Twirl Effect support:
+
+Universal Render Pipeline. All effects will work Custom render feature.
+
+========
+
+Setup NEW Effects for Universal Render Pipeline.
+
+1. Open your Renderer(Forward Render by default) and click "Add Render Feature".
+2. Add Twirl Effect URP. 
+3. In your scene add Volume component to any gameobject you want. In volume component create new volume profile or use existing one. Click "override" and select effect.
+
+========
+
+
+**Manipulating effects variables **      
+
+See TwirlEffectManipulationExample.cs file
+
+========
+
+[Contact]
+///
+
+If you want to leave a feedback or ask for new feature, use Asset related forum thread.
+If you run into any issues or have questions, please do not hesitate to reach out ! I will do my best to respond as soon as I can.
+
+Contact email: limitlessunitydevelopment@gmail.com
+
+Please keep in mind that I’m in the UTC+5 timezone and usually reserve weekends for personal time.
+///
+
+[Credits]
+
+https://www.freepik.com/free-vector/superhero-cartoon-icons-set_4267616.htm#page=1&query=character%20superman&position=2

@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class Pickup : MonoBehaviour
 {
-    [HideInInspector]
-    public GameObject BelongedPoint;
+
     private bool isAlerting;
     private bool isWarning;
     // Start is called before the first frame update
@@ -44,7 +43,6 @@ public class Pickup : MonoBehaviour
 
     public void Disappear()
     {
-        GameController.Instance.GeneratedPickUpPosesObj.Remove(BelongedPoint);
         Destroy(gameObject);
     }
 
