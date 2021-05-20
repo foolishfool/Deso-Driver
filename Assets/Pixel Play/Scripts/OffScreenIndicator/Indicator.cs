@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Pathfinding;
+using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
@@ -12,6 +13,9 @@ public class Indicator : MonoBehaviour
     public Image Arrow;
     [HideInInspector]
     public GameObject BelongedPickup;
+
+
+    
     /// <summary>
     /// Gets if the game object is active in hierarchy.
     /// </summary>
@@ -37,13 +41,13 @@ public class Indicator : MonoBehaviour
     void Awake()
     {
         distanceText = transform.GetComponentInChildren<Text>();
-        if (indicatorType == IndicatorType.ARROW)
-        {
-          //  GetComponent<Button>().onClick.AddListener(()=>GameController.Instance.Car.GetComponent<CarController>().SelfNavAgent.SetDestination(BelongedPickup.transform.position));
-        } 
+
+       GetComponent<Button>().onClick.AddListener(()=> SetTarget());
+
        
     }
 
+ 
     /// <summary>
     /// Sets the image color for the indicator.
     /// </summary>
@@ -81,6 +85,13 @@ public class Indicator : MonoBehaviour
     public void Activate(bool value)
     {
         transform.gameObject.SetActive(value);
+    }
+
+    public void SetTarget()
+    {
+
+        GameController.Instance.Target.UIClicked = true;
+        GameController.Instance.Target.UIPosiiton = BelongedPickup.gameObject.transform.position;
     }
 }
 

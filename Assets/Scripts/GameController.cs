@@ -5,12 +5,15 @@ using UnityEngine.AI;
 using System.Linq;
 using DG.Tweening;
 using Pathfinding.Examples;
+using Pathfinding;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
 
     public GameObject Car;
-    public AstarSmoothFollow2 Camera;
+    //public AstarSmoothFollow2 Camera;
     private static GameController instance;
 
     public TwirlEffectManipulationExample TwirEffect;
@@ -20,12 +23,22 @@ public class GameController : MonoBehaviour
     [HideInInspector]
     public List<GameObject> PickUpPoints;
 
+    public TargetMover Target;
 
+    public AIPath AIPath;
     [HideInInspector]
     public bool Drunk;
     [HideInInspector]
     public List<GameObject> AlcoholsPoints;
-    public List<Transform> AlcoholPoses;
+  
+    public float BacNum;
+    [HideInInspector]
+    public int MoneyNum;
+
+    [HideInInspector]
+    public bool TimeRunning;
+
+    public List<GameObject> ResetPositions = new List<GameObject>();
 
     public List<GameObject> GeneratedPickUpPosesObj;
     public List<GameObject> GeneratedAlcoholPosesObj;
@@ -34,14 +47,22 @@ public class GameController : MonoBehaviour
     public List<GameObject> PickUps;
     public List<GameObject> Alcohols;
 
-    public bool IsCameraLevelingUp;
+    public ParticleSystem Pickupeffect;
 
-    private int maxPickupNum = 10;
-    private int maxAlcoholNum = 20;
+    [HideInInspector]
+    public GameObject CurrentPickUp;
 
-    private int generatePickupInterval;
-    private int generateAlcoholInterval;
+    private int maxPickupNum = 8;
+    private int maxAlcoholNum = 50;
 
+    private float generatePickupInterval;
+    private float generateAlcoholInterval;
+
+    private float drinksigntimer;
+    public bool FirstPickup;
+
+    private bool canGenerateAlcohol;
+    private bool canGeneratePickup;
     public static GameController Instance
     {
         get
@@ -63,7 +84,11 @@ public class GameController : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
+
     {
+
+        Target.enabled = false;
+
         generatePickupInterval = 0;
 
         for (int i = 0; i < PickupParent.transform.childCount; i++)
@@ -76,38 +101,27 @@ public class GameController : MonoBehaviour
         {
             AlcoholsPoints.Add(AlcoholsParent.transform.GetChild(i).gameObject);
         }
-        StartCoroutine(GenerateNewPickup());
-        StartCoroutine(GenerateNewAlcohol());
 
     }
 
     // Update is called once per frame
     void Update()
     {
-      // if (IsCameraLevelingUp)
-      // {
-      //     Camera.height++;
-      // }
-      // else 
-      // {
-      //     if (Camera.height>=15)
-      //     {
-      //         Camera.height--;
-      //     }
-      // }
+        canGenerateAlcohol = GeneratedAlcoholPosesObj.Count >= maxAlcoholNum ? false : true;
+        canGeneratePickup = GeneratedPickUpPosesObj.Count >= maxPickupNum ? false : true;
+
+        ResetPositions = Target.ResetPositions;
+
+
     }
 
 
 
-    private IEnumerator GenerateNewPickup()
+    public IEnumerator GenerateNewPickup()
     {
        NewRound:
-        if (GeneratedPickUpPosesObj.Count == maxPickupNum)
-        {
-            yield break;
-        }
-
-        generatePickupInterval = Random.Range(5, 15);
+        yield return new WaitUntil(() => canGeneratePickup == true);
+        generatePickupInterval = Random.Range(1, 5);
        // Debug.Log("Generate New Pick UP!");
         yield return new WaitForSeconds(generatePickupInterval);
 
@@ -116,7 +130,8 @@ public class GameController : MonoBehaviour
         if (!GeneratedPickUpPosesObj.Contains(PickUpPoints[randomindex]))
         {
             int randomPickup = Random.Range(0, PickUps.Count);
-           GameObject newPickUP =  Instantiate(PickUps[randomPickup], PickUpPoints[randomindex].transform.position, Quaternion.identity);
+            GameObject newPickUP =  Instantiate(PickUps[randomPickup], PickUpPoints[randomindex].transform.position, Quaternion.identity);
+            newPickUP.transform.parent = PickUpPoints[randomindex].transform;
             GeneratedPickUpPosesObj.Add(PickUpPoints[randomindex]);
             goto NewRound;
         }
@@ -131,15 +146,13 @@ public class GameController : MonoBehaviour
 
 
 
-    private IEnumerator GenerateNewAlcohol()
+    public IEnumerator GenerateNewAlcohol()
     {
+     
         NewRound:
-        if (GeneratedAlcoholPosesObj.Count == maxAlcoholNum)
-        {
-            yield break;
-        }
+        yield return new WaitUntil(() => canGenerateAlcohol == true);
 
-        generateAlcoholInterval = Random.Range(5, 10);
+        generateAlcoholInterval = Random.Range(1, 5);
         // Debug.Log("Generate New Pick UP!");
         yield return new WaitForSeconds(generateAlcoholInterval);
 
@@ -148,8 +161,15 @@ public class GameController : MonoBehaviour
         if (!GeneratedAlcoholPosesObj.Contains(AlcoholsPoints[randomindex]))
         {
             int randomPickup = Random.Range(0, Alcohols.Count);
-            GameObject newPickUP = Instantiate(Alcohols[randomPickup], AlcoholsPoints[randomindex].transform.position, Quaternion.identity);
+            if (Vector3.Distance(AlcoholsPoints[randomindex].transform.position,Car.transform.position)<15f)
+            {
+                goto Random;
+            }
+            GameObject newAlcohol = Instantiate(Alcohols[randomPickup], AlcoholsPoints[randomindex].transform.position, Quaternion.identity);
             GeneratedAlcoholPosesObj.Add(AlcoholsPoints[randomindex]);
+            AlcoholsPoints[randomindex].transform.GetChild(1).gameObject.SetActive(true);
+            newAlcohol.transform.parent = AlcoholsPoints[randomindex].transform;
+
             goto NewRound;
         }
 
@@ -166,14 +186,18 @@ public class GameController : MonoBehaviour
     {
         if (!Drunk)
         {
-            TwirEffect.Amount = 0.3f;
-            TwirEffect.Speed = 1.5f;
+            TwirEffect.Amount = 0.2f;
+            TwirEffect.Speed = 1.3f;
+            AIPath.maxSpeed = 20;
             Drunk = true;
+            Car.transform.DOScale(new Vector3(1.2f, 1.2f, 1.2f), 0.5f).SetLoops(-1, LoopType.Yoyo);
         }
         else
         {
-            TwirEffect.Amount += 0.3f;
-            TwirEffect.Speed += 0.2f;
+            TwirEffect.Amount += 0.1f;
+            TwirEffect.Speed += 0.1f;
+            AIPath.maxSpeed += 5;
+
         }
       
        
@@ -181,6 +205,41 @@ public class GameController : MonoBehaviour
 
 
 
+    public void GameRestart()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(scene.name);
+        Time.timeScale = 1;
+        AudioController.Instance.PlayButtonSFX(AudioController.Instance.ButtonSFX1);
+    }
+
+
+    public void GameFinish()
+    {
+        StartCoroutine(ResultPanelShowBehavoir());
+
+    }
+
+    IEnumerator ResultPanelShowBehavoir()
+    {
+        yield return new WaitForSeconds(2f);
+        UIManager.Instance.ResultPanelShow();
+        yield break;
+    }
+
+    public void GamePause()
+    {
+        UIManager.Instance.PausePanelShow();
+    }
+    public void GameResume()
+    {
+        UIManager.Instance.PausePanelHide();
+    }
+    //call in ui button
+    public void ResetTargetUIClick()
+    {
+        Target.UIClicked = false;
+    }
 }
 
 

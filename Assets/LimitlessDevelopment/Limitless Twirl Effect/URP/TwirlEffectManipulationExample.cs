@@ -10,7 +10,7 @@ public class TwirlEffectManipulationExample : MonoBehaviour
 	public Slider sp;
 	public Slider rad ;
 
-	public float Radius = 5;
+	public float Radius = 1.26f;
 	public float Amount;
 	public float Speed;
 	bool l = true;
@@ -53,8 +53,12 @@ public class TwirlEffectManipulationExample : MonoBehaviour
 		effect.speed.value = Speed;
 		effect.effectRadius.value = Radius;
 
+		//effect.amount.value = amo.value;
+		//effect.speed.value = sp.value;
+		//effect.effectRadius.value = rad.value;
+
 		//Debug.Log(amo.value + " 0.3 amo.value");
-		//Debug.Log(sp.value + " 1.6 sp.value");
-		//Debug.Log(rad.value + " 5  rad.value");
+		//Debug.Log(sp.value + " 3.3 sp.value");
+		//Debug.Log(rad.value + " 1.26  rad.value");
 	}
 }

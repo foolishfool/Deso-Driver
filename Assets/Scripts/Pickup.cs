@@ -1,12 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
+using UnityEngine.UI;
 
 public class Pickup : MonoBehaviour
 {
 
     private bool isAlerting;
     private bool isWarning;
+    private float drinksigntimer;
     // Start is called before the first frame update
     void Start()
     {
@@ -17,6 +20,9 @@ public class Pickup : MonoBehaviour
     void Update()
     {
         UIUpdate();
+
+
+
     }
 
     public IEnumerator LifeBehavior()
@@ -27,6 +33,12 @@ public class Pickup : MonoBehaviour
         isAlerting = false;
         isWarning = true;
         yield return new WaitForSeconds(15f);
+
+
+        if (GameController.Instance.GeneratedPickUpPosesObj.Contains(gameObject.transform.parent.gameObject))
+        {
+            GameController.Instance.GeneratedPickUpPosesObj.Remove(gameObject.transform.parent.gameObject);
+        }
         Disappear();
         yield break;
     }
@@ -84,4 +96,53 @@ public class Pickup : MonoBehaviour
             gameObject.GetComponent<Target>().BelongedIndicator.SetImageColor(Color.red);
     }
 
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("Car"))
+        {
+            if (GameController.Instance.Drunk)
+            {
+
+                GameObject sign = Instantiate(UIManager.Instance.DrunkSign, gameObject.transform.position, Quaternion.identity);
+                sign.transform.parent = GameObject.Find("UI").transform;
+                sign.transform.Find("Image").GetComponent<Image>().sprite = gameObject.GetComponent<Target>().LeaveImage;
+                sign.GetComponent<DrunkSign>().BelongedPickUp = gameObject;
+                sign.transform.DOScale(new Vector3(0.5f, 0.5f, 0.5f), 1f);
+                GameController.Instance.CurrentPickUp = gameObject;
+
+
+                //go away, you are drunk
+                return;
+            }
+            if (!GameController.Instance.Pickupeffect.gameObject.activeSelf)
+            {
+                GameController.Instance.Pickupeffect.gameObject.SetActive(true);
+            }
+            GameController.Instance.Pickupeffect.Play();
+
+            if (!GameController.Instance.FirstPickup)
+            {
+          
+                UIManager.Instance.TimerShow();
+                GameController.Instance.FirstPickup = true;
+            }
+
+            UIManager.Instance.SetInitalRewardValue(UIManager.Instance.RollingNumber, GameController.Instance.MoneyNum, GameController.Instance.MoneyNum+50);
+
+            GameController.Instance.MoneyNum += 50;
+            //  UIManager.Instance.UpdateMoneyText();
+
+            UIManager.Instance.RollingNumber.StartRolling();
+            //gameObject.transform.SetParent(other.gameObject.transform);
+            gameObject.transform.DOMove(other.gameObject.transform.position, 0.5f).OnComplete(()=>Destroy(gameObject));
+
+    
+            if (GameController.Instance.GeneratedPickUpPosesObj.Contains(gameObject.transform.parent.gameObject))
+            {
+                
+                GameController.Instance.GeneratedPickUpPosesObj.Remove(gameObject.transform.parent.gameObject);
+            }
+        }
+    }
 }
