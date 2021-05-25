@@ -61,6 +61,7 @@ namespace Pathfinding {
 			if (isAIPath) {
 				FloatField("pickNextWaypointDist", min: 0f);
 				FloatField("slowdownDistance", min: 0f);
+
 			} else {
 				FloatField("slowdownTime", min: 0f);
 				FloatField("wallForce", min: 0f);
@@ -74,6 +75,9 @@ namespace Pathfinding {
 				PropertyField("alwaysDrawGizmos");
 				PropertyField("whenCloseToDestination");
 				PropertyField("constrainInsideGraph");
+				PropertyField("carAudiosource");
+				PropertyField("carstopclip");
+				PropertyField("carstartclip");
 			}
 
 			var mono = target as MonoBehaviour;

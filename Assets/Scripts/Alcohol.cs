@@ -48,6 +48,8 @@ public class Alcohol : MonoBehaviour
 
         UIManager.Instance.UpdateBacText();
 
+        AudioController.Instance.PlayEventSFX(AudioController.Instance.AlcoholSFX);
+
         if (GameController.Instance.BacNum >0.05)
         {
             GameController.Instance.TwirEffectIncrease();

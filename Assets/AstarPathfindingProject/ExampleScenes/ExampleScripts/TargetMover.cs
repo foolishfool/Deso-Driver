@@ -23,7 +23,7 @@ namespace Pathfinding {
 		public bool onlyOnDoubleClick;
 		public bool use2D;
 
-
+		public AIPath AIPath;
 		public GameObject Effect1;
 		public GameObject Effect2;
 		public List<GameObject> ResetPositions = new List<GameObject>();
@@ -58,6 +58,14 @@ namespace Pathfinding {
 		 Vector3  newPosition = Vector3.zero;
 		 bool	positionFound = false;
 
+            if (!AIPath.HasStarted )
+            {
+				AIPath.carAudiosource.clip = AIPath.carstartclip;
+				AIPath.carAudiosource.Play();
+				//hasStarted = true;
+				AIPath.HasStarted = true;
+				AIPath.HasStopped = false;
+			}
 
 			if (use2D) {
 				newPosition = cam.ScreenToWorldPoint(Input.mousePosition);

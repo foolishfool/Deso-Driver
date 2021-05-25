@@ -97,6 +97,7 @@ public class UIManager : MonoBehaviour
         StartPanel.SetActive(false);
         InfoPanel1.SetActive(true);
         AudioController.Instance.PlayButtonSFX(AudioController.Instance.ButtonSFX1);
+        AudioController.Instance.BackgourndFXAudioSource.Play();
     }
     public void SetInitalRewardValue(RollingNumbers rollingNumber, int startValue, int endValue)
     {

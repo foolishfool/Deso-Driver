@@ -224,6 +224,7 @@ namespace Pathfinding.Legacy {
 			this.targetDirection = dir;
 
 			if (currentWaypointIndex == vPath.Count-1 && targetDist <= endReachedDistance) {
+
 				if (!reachedEndOfPath) { reachedEndOfPath = true; OnTargetReached(); }
 
 				//Send a move request, this ensures gravity is applied

@@ -120,7 +120,7 @@ public class Pickup : MonoBehaviour
                 GameController.Instance.Pickupeffect.gameObject.SetActive(true);
             }
             GameController.Instance.Pickupeffect.Play();
-
+            AudioController.Instance.PlayEventSFX(AudioController.Instance.PickUpSFX);
             if (!GameController.Instance.FirstPickup)
             {
           
@@ -134,6 +134,7 @@ public class Pickup : MonoBehaviour
             //  UIManager.Instance.UpdateMoneyText();
 
             UIManager.Instance.RollingNumber.StartRolling();
+            AudioController.Instance.PlayButtonSFX(AudioController.Instance.MoneySFX);
             //gameObject.transform.SetParent(other.gameObject.transform);
             gameObject.transform.DOMove(other.gameObject.transform.position, 0.5f).OnComplete(()=>Destroy(gameObject));
 

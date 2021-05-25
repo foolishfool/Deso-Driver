@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+
 namespace Pathfinding {
 	using Pathfinding.RVO;
 	using Pathfinding.Util;
@@ -84,6 +85,8 @@ namespace Pathfinding {
 		/// <summary>Distance from the end of the path where the AI will start to slow down</summary>
 		public float slowdownDistance = 0.6F;
 
+		
+
 		/// <summary>
 		/// How far the AI looks ahead along the path to determine the point it moves to.
 		/// In world units.
@@ -101,6 +104,8 @@ namespace Pathfinding {
 		/// </summary>
 		public float pickNextWaypointDist = 2;
 
+
+
 		/// <summary>
 		/// Distance to the end point to consider the end of path to be reached.
 		/// When the end is within this distance then <see cref="OnTargetReached"/> will be called and <see cref="reachedEndOfPath"/> will return true.
@@ -110,12 +115,20 @@ namespace Pathfinding {
 		/// <summary>Draws detailed gizmos constantly in the scene view instead of only when the agent is selected and settings are being modified</summary>
 		public bool alwaysDrawGizmos;
 
+
+		public AudioSource carAudiosource;
+		public AudioClip carstopclip;
+		public AudioClip carstartclip;
+
 		/// <summary>
 		/// Slow down when not facing the target direction.
 		/// Incurs at a small performance overhead.
 		/// </summary>
 		public bool slowWhenNotFacingTarget = true;
+		public bool show = true;
 
+		public bool HasStopped ;
+		public bool HasStarted;
 		/// <summary>
 		/// What to do when within <see cref="endReachedDistance"/> units from the destination.
 		/// The character can either stop immediately when it comes within that distance, which is useful for e.g archers
@@ -268,6 +281,8 @@ namespace Pathfinding {
 		/// So when the agent is close to the destination this method will typically be called every <see cref="repathRate"/> seconds.
 		/// </summary>
 		public virtual void OnTargetReached () {
+
+			HasStarted = false;
 		}
 
 		/// <summary>
@@ -299,6 +314,7 @@ namespace Pathfinding {
 			// Replace the old path
 			path = p;
 
+ 
 			// Make sure the path contains at least 2 points
 			if (path.vectorPath.Count == 1) path.vectorPath.Add(path.vectorPath[0]);
 			interpolator.SetPath(path.vectorPath);
@@ -308,6 +324,9 @@ namespace Pathfinding {
 
 			// Reset some variables
 			reachedEndOfPath = false;
+
+
+
 
 			// Simulate movement from the point where the path was requested
 			// to where we are right now. This reduces the risk that the agent
@@ -323,6 +342,9 @@ namespace Pathfinding {
 			interpolator.MoveToCircleIntersection2D(position, pickNextWaypointDist, movementPlane);
 
 			var distanceToEnd = remainingDistance;
+
+
+
 			if (distanceToEnd <= endReachedDistance) {
 				reachedEndOfPath = true;
 				OnTargetReached();
@@ -333,6 +355,7 @@ namespace Pathfinding {
 			CancelCurrentPathRequest();
 			interpolator.SetPath(null);
 			reachedEndOfPath = false;
+
 		}
 
 		/// <summary>Called during either Update or FixedUpdate depending on if rigidbodies are used for movement or not</summary>
@@ -358,6 +381,16 @@ namespace Pathfinding {
 			// Calculate the distance to the end of the path
 			float distanceToEnd = dir.magnitude + Mathf.Max(0, interpolator.remainingDistance);
 
+			int distance = (int)distanceToEnd;
+			
+			if (distance != 0 && distance <= endReachedDistance + 5 && !HasStopped && HasStarted)
+			{
+				Debug.Log(distance + "  " + endReachedDistance + 5);
+				carAudiosource.clip = carstopclip;
+				carAudiosource.Play();
+				HasStopped = true;
+			}
+
 			// Check if we have reached the target
 			var prevTargetReached = reachedEndOfPath;
 			reachedEndOfPath = distanceToEnd <= endReachedDistance && interpolator.valid;
@@ -374,7 +407,9 @@ namespace Pathfinding {
 				// This is always a value between 0 and 1.
 				slowdown = distanceToEnd < slowdownDistance? Mathf.Sqrt (distanceToEnd / slowdownDistance) : 1;
 
-				if (reachedEndOfPath && whenCloseToDestination == CloseToDestinationMode.Stop) {
+
+
+				if (reachedEndOfPath && whenCloseToDestination == CloseToDestinationMode.Stop) {       
 					// Slow down as quickly as possible
 					velocity2D -= Vector2.ClampMagnitude(velocity2D, currentAcceleration * deltaTime);
 				} else {
@@ -382,6 +417,9 @@ namespace Pathfinding {
 				}
 			} else {
 				slowdown = 1;
+
+
+
 				// Slow down as quickly as possible
 				velocity2D -= Vector2.ClampMagnitude(velocity2D, currentAcceleration * deltaTime);
 			}
