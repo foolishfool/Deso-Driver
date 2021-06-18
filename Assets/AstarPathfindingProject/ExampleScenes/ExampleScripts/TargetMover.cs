@@ -18,7 +18,7 @@ namespace Pathfinding {
 
 		public Transform target;
 		IAstarAI[] ais;
-
+		public IAstarAI policeCar;
 		/// <summary>Determines if the target position should be updated every frame or only on double-click</summary>
 		public bool onlyOnDoubleClick;
 		public bool use2D;
@@ -119,8 +119,12 @@ namespace Pathfinding {
 
 			if (positionFound && newPosition != target.position) {
 				target.position = newPosition;
+				
 
 				if (onlyOnDoubleClick) {
+
+					ais = FindObjectsOfType<MonoBehaviour>().OfType<IAstarAI>().ToArray();
+
 					for (int i = 0; i < ais.Length; i++) {
 						if (ais[i] != null)
 						{

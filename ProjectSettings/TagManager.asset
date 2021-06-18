@@ -10,6 +10,7 @@ TagManager:
   - HighBuilding
   - Car
   - Point
+  - PoliceCar
   layers:
   - Default
   - TransparentFX

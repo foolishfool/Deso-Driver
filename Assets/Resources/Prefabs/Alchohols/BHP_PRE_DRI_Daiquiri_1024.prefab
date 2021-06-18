@@ -51,6 +51,7 @@ MonoBehaviour:
   BacNum: 0.03
   Explosion: {fileID: 3913533047113251311}
   RingEffect: {fileID: 7428359550239249539}
+  HasSign: 0
 --- !u!135 &1882222717298665783
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -59,7 +60,7 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 109986}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using OldMoatGames;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,7 +24,12 @@ public class UIManager : MonoBehaviour
     public GameObject InfoPanel3;
 
     public GameObject DrunkSign;
-
+    public GameObject AlcoholSign;
+    public GameObject PoliceSign;
+    public Text ResultInfo;
+    public RenderTexture videoTexture;
+    public Texture screenStart;
+    public GameObject IncreaseTimer;
 
     public RollingNumbers RollingNumber;
 
@@ -46,7 +52,20 @@ public class UIManager : MonoBehaviour
     }
 
     private void Start()
+
     {
+        if (GlobalVariable.Instance.IsLoaded)
+        {
+            StartPanel.transform.GetChild(0).GetComponent<AnimatedGifPlayer>().enabled = false;
+            StartPanel.transform.GetChild(0).GetComponent<RawImage>().texture = videoTexture;
+            ResultInfo.text = "Time's Up";
+
+        }
+        else
+        {
+            StartPanel.transform.GetChild(0).GetComponent<RawImage>().texture = screenStart;
+        }
+
         MoneyNum.text = "$" + GameController.Instance.MoneyNum.ToString();
         BacNum.text = "0.00%";
     }
@@ -95,6 +114,7 @@ public class UIManager : MonoBehaviour
     public void HideStartPanel()
     {
         StartPanel.SetActive(false);
+        GlobalVariable.Instance.IsLoaded = true;
         InfoPanel1.SetActive(true);
         AudioController.Instance.PlayButtonSFX(AudioController.Instance.ButtonSFX1);
         AudioController.Instance.BackgourndFXAudioSource.Play();
@@ -126,6 +146,7 @@ public class UIManager : MonoBehaviour
         yield return new WaitForSeconds(3);
         ShowInfoPanel3();
         StartCoroutine(GameController.Instance.GenerateNewPickup());
+        TimerShow();
         yield break;
     }
 

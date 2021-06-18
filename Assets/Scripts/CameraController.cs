@@ -12,37 +12,28 @@ public class CameraController : MonoBehaviour
     public Material OpaqueMaterial;
     public GameObject Car;
     Dictionary<GameObject, Material> changedMaterials = new Dictionary<GameObject, Material>();
-    private Vector3 distance;
-    public Vector3 InitialDistance;
-    public float X;
-    public float y;
-    public float Z;
+  //  private Vector3 distance;
+   // public Vector3 InitialDistance;
+   // public float X;
+   // public float y;
+   // public float Z;
     public float height;
-
+    public GameObject Pivot;
     private bool isLevelUp;
     // Start is called before the first frame update
     void Start()
     {
-        distance =   gameObject.transform.position - Car.transform.position ;
-        InitialDistance = distance;
+      //  distance =   gameObject.transform.position - Car.transform.position ;
+      //  InitialDistance = distance;
     }
 
     // Update is called once per frame
     void Update()
     {
 
-         Vector3 newPos = new Vector3(Car.transform.position.x + height + InitialDistance.x, Car.transform.position.y + InitialDistance.y + height, Car.transform.position.z + InitialDistance.z + height);
-         gameObject.transform.position = newPos;
+        // Vector3 newPos = new Vector3(Car.transform.position.x + height + InitialDistance.x, Car.transform.position.y + InitialDistance.y + height, Car.transform.position.z + InitialDistance.z + height);
+        Pivot.transform.position = Car.transform.position;
          gameObject.transform.LookAt(Car.transform);
-
-        if (!isLevelUp)
-        {
-            height -= Time.deltaTime *3;
-            if (height < 0)
-            {
-                height = 0;
-            }
-        }
 
         Vector3 dir = Car.transform.position - gameObject.transform.position;
         LayerMask mask = LayerMask.GetMask("IgnoreRayCast");
@@ -54,11 +45,11 @@ public class CameraController : MonoBehaviour
              if (!InHitList(item.Key, hitInfos))
              {
                  //reset to inital material
-                 Material newMaterial = new Material(OpaqueMaterial);
-                if (item.Value.HasProperty("_BaseMap"))
-                    newMaterial.SetTexture("_BaseMap", item.Value.GetTexture("_BaseMap"));
+                Material newMaterial = new Material(OpaqueMaterial);
+               if (item.Value.HasProperty("_BaseMap"))
+                  newMaterial.SetTexture("_BaseMap", item.Value.GetTexture("_BaseMap"));
 
-                SetWholeObjectMaterials(item.Key, newMaterial,false);
+               SetWholeObjectMaterials(item.Key, newMaterial,false);
 
                 isLevelUp = false;
              }        
@@ -80,11 +71,12 @@ public class CameraController : MonoBehaviour
                 {
                     newMaterial.SetTexture("_BaseMap", initialMaterial.GetTexture("_BaseMap"));
                 }
-          
-                // Color transparentColor = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
-                // newMaterial.color = transparentColor;
-                height +=Time.deltaTime *2;
-                SetWholeObjectMaterials(hitInfos[i].collider.gameObject, newMaterial,true);
+
+                 Color transparentColor = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
+                 newMaterial.color = transparentColor;
+
+                 SetWholeObjectMaterials(hitInfos[i].collider.
+                 gameObject, newMaterial,true);
                 isLevelUp = true;
             }
         }

@@ -20,11 +20,18 @@ public class DrunkSign : MonoBehaviour
             Vector3 screenPos = Camera.main.WorldToScreenPoint(BelongedPickUp.transform.position);
             transform.position = new Vector3(screenPos.x, screenPos.y + 80, screenPos.z);
         }
-        else transform.DOScale(Vector3.zero, 0.5f).OnComplete(() => Destroy(gameObject));
+        else transform.DOScale(Vector3.zero, 0.5f).OnComplete(() =>
+        {
+            BelongedPickUp.GetComponent<Pickup>().HasSign = false;
+            Destroy(gameObject);
+        });
 
         if (drinksigntimer > 5f)
         {
-            transform.DOScale(Vector3.zero, 0.5f).OnComplete(() => Destroy(gameObject));
+            transform.DOScale(Vector3.zero, 0.5f).OnComplete(() => {
+                BelongedPickUp.GetComponent<Pickup>().HasSign = false;
+                Destroy(gameObject);
+            });
         }
     }
 }

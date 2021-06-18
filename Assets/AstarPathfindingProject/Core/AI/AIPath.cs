@@ -385,7 +385,6 @@ namespace Pathfinding {
 			
 			if (distance != 0 && distance <= endReachedDistance + 5 && !HasStopped && HasStarted)
 			{
-				Debug.Log(distance + "  " + endReachedDistance + 5);
 				carAudiosource.clip = carstopclip;
 				carAudiosource.Play();
 				HasStopped = true;

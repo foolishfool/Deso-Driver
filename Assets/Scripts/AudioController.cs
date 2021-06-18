@@ -28,17 +28,21 @@ using UnityEngine;
         public AudioClip ButtonSFX1;
         public AudioClip ButtonSFX2;
         public AudioClip StopSFX;
-        public AudioClip PerfectSFX;
-        public AudioClip AlcoholSFX;
+        public AudioClip FailSFX;
+        public AudioClip PassSFX;
+        public AudioClip LicenceLoseSFX;
+        public AudioClip WarningSFX;
+       public AudioClip  RefuseSFX;
+       public AudioClip AlcoholSFX;
         public AudioClip PickUpSFX;
         public AudioClip MoneySFX;
         public AudioClip GameOverSFX;
         public AudioSource BackgourndFXAudioSource;
         public AudioSource EventSFXAudioSource;
         public AudioSource ButtonSFXAudioSource;
-
-        // Start is called before the first frame update
-        void Start()
+        public AudioSource PoliceCarAudioSource;
+    // Start is called before the first frame update
+    void Start()
         {
 
         }

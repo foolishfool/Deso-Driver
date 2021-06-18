@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.AI;
 using System.Linq;
@@ -8,17 +9,20 @@ using Pathfinding.Examples;
 using Pathfinding;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.Video;
+using Jacovone;
 
 public class GameController : MonoBehaviour
 {
 
     public GameObject Car;
+    public GameObject PoliceCar;
+    public Transform PoliceIntialTransform;
     //public AstarSmoothFollow2 Camera;
     private static GameController instance;
 
     public TwirlEffectManipulationExample TwirEffect;
-
+    public Timer Timer;
     public GameObject PickupParent;
     public GameObject AlcoholsParent;
     [HideInInspector]
@@ -32,6 +36,7 @@ public class GameController : MonoBehaviour
     [HideInInspector]
     public List<GameObject> AlcoholsPoints;
   
+    public List<PathMagic> Paths;
     public float BacNum;
     [HideInInspector]
     public int MoneyNum;
@@ -49,7 +54,7 @@ public class GameController : MonoBehaviour
     public List<GameObject> Alcohols;
 
     public ParticleSystem Pickupeffect;
-
+    public VideoPlayer StartVideoPlayer;
     [HideInInspector]
     public GameObject CurrentPickUp;
 
@@ -59,11 +64,14 @@ public class GameController : MonoBehaviour
     private float generatePickupInterval;
     private float generateAlcoholInterval;
 
-    private float drinksigntimer;
+    private float policetimer;
     public bool FirstPickup;
+    private int policeInterval;
 
     private bool canGenerateAlcohol;
     private bool canGeneratePickup;
+
+  
     public static GameController Instance
     {
         get
@@ -82,12 +90,22 @@ public class GameController : MonoBehaviour
         }
     }
 
+    public bool PoliceChecked;
+
+    private void Awake()
+    {
+        StartVideoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, "Deso Driver Start Screen.mp4");
+        StartVideoPlayer.playOnAwake = true;
+        StartVideoPlayer.isLooping = true;
+        StartVideoPlayer.Play();
+
+    }
 
     // Start is called before the first frame update
     void Start()
 
     {
-
+        policeInterval = Random.Range(45, 60);
         Target.enabled = false;
 
         generatePickupInterval = 0;
@@ -113,7 +131,16 @@ public class GameController : MonoBehaviour
 
         ResetPositions = Target.ResetPositions;
 
-
+      //  if (TimeRunning)
+      //  {
+      //      policetimer += Time.deltaTime;
+      //      if (policetimer >= policeInterval)
+      //      {
+      //          ShowPoliceCar();
+      //          policetimer = 0;
+      //          policeInterval = Random.Range(50, 60);
+      //      }
+      //  }
     }
 
 
@@ -145,8 +172,18 @@ public class GameController : MonoBehaviour
     }
 
 
-
-
+    public void ShowPoliceCar()
+    {
+        PoliceCar.SetActive(true);
+        PoliceChecked = false;
+        PoliceCar.GetComponent<AIDestinationSetter>().target = Car.transform;
+        AudioController.Instance.PoliceCarAudioSource.Play();
+        AudioController.Instance.PoliceCarAudioSource.DOFade(0.6f, 1f);
+    }
+    public void HidePoliceCar()
+    {
+        PoliceCar.SetActive(false);
+    }
     public IEnumerator GenerateNewAlcohol()
     {
      
@@ -187,16 +224,16 @@ public class GameController : MonoBehaviour
     {
         if (!Drunk)
         {
-            TwirEffect.Amount = 0.2f;
-            TwirEffect.Speed = 1.3f;
+            TwirEffect.Amount = 0.1f;
+            TwirEffect.Speed = 0.1f;
             AIPath.maxSpeed = 20;
             Drunk = true;
             Car.transform.DOScale(new Vector3(1.2f, 1.2f, 1.2f), 0.5f).SetLoops(-1, LoopType.Yoyo);
         }
         else
         {
-            TwirEffect.Amount += 0.1f;
-            TwirEffect.Speed += 0.1f;
+            TwirEffect.Amount += 0.02f;
+            TwirEffect.Speed += 0.02f;
             AIPath.maxSpeed += 5;
 
         }
@@ -205,7 +242,10 @@ public class GameController : MonoBehaviour
     }
 
 
-
+    public void TimerIncrease()
+    {
+        Timer.timeRemaining += 10;
+    }
     public void GameRestart()
     {
         Scene scene = SceneManager.GetActiveScene();

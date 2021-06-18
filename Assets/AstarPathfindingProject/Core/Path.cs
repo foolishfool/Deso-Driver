@@ -3,6 +3,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 namespace Pathfinding {
 	/// <summary>
@@ -54,13 +55,18 @@ namespace Pathfinding {
 		/// </summary>
 		public OnPathDelegate callback;
 
-		/// <summary>
-		/// Immediate callback to call when the path is complete.
-		/// Warning: This may be called from a separate thread. Usually you do not want to use this one.
-		///
-		/// See: callback
-		/// </summary>
-		public OnPathDelegate immediateCallback;
+        public static object Combine(string streamingAssetsPath, string v)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Immediate callback to call when the path is complete.
+        /// Warning: This may be called from a separate thread. Usually you do not want to use this one.
+        ///
+        /// See: callback
+        /// </summary>
+        public OnPathDelegate immediateCallback;
 
 		/// <summary>Returns the state of the path in the pathfinding pipeline</summary>
 		public PathState PipelineState { get; private set; }

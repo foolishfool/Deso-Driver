@@ -10,7 +10,7 @@ public class TwirlEffectManipulationExample : MonoBehaviour
 	public Slider sp;
 	public Slider rad ;
 
-	public float Radius = 1.26f;
+	public float Radius = 0.74f;
 	public float Amount;
 	public float Speed;
 	bool l = true;

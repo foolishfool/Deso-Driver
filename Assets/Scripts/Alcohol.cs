@@ -4,11 +4,15 @@ using UnityEngine;
 using DG.Tweening;
 using System;
 
+
 public class Alcohol : MonoBehaviour
 {
     public float BacNum;
     public GameObject Explosion;
     public GameObject RingEffect;
+    private bool isDrinked;
+    [HideInInspector]
+    public bool HasSign;
     // Start is called before the first frame update
     void Start()
     {
@@ -19,6 +23,17 @@ public class Alcohol : MonoBehaviour
     void Update()
     {
         transform.Rotate(Vector3.up * 50 * Time.deltaTime, Space.World);
+
+        float distance = Vector3.Distance(gameObject.transform.position, GameController.Instance.Car.transform.position);
+        if (distance <= 15 && !HasSign)
+        {
+            GameObject sign = Instantiate(UIManager.Instance.AlcoholSign, gameObject.transform.position, Quaternion.identity);
+            sign.transform.parent = GameObject.Find("UI").transform;
+            sign.GetComponent<AlcoholSign>().BelongedAlcohol = gameObject;
+            sign.transform.DOScale(new Vector3(0.2f, 0.2f, 0.2f), 1f);
+            HasSign = true;
+            AudioController.Instance.PlayEventSFX(AudioController.Instance.WarningSFX);
+        }
     }
     public IEnumerator LifeBehavior()
     {
@@ -41,8 +56,16 @@ public class Alcohol : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-
+        if (!other.gameObject.CompareTag("Car"))
+        {
+            return;
+        }
+        if (isDrinked)
+        {
+            return;
+        }
         GameController.Instance.BacNum += BacNum;
+        isDrinked = true;
 
         GameController.Instance.BacNum = (float)Math.Round(GameController.Instance.BacNum * 100f) / 100f;
 
@@ -54,7 +77,18 @@ public class Alcohol : MonoBehaviour
         {
             GameController.Instance.TwirEffectIncrease();
         }
+        else
+        {
+          GameController.Instance.AIPath.maxSpeed += 2;
+        }
+        if (GameController.Instance.BacNum >= 0.15f)
+        {
+            if (!GameController.Instance.PoliceCar.activeSelf)
+            {
+                GameController.Instance.ShowPoliceCar();
+            }
 
+        }
         if (GameController.Instance.GeneratedAlcoholPosesObj.Contains(gameObject.transform.parent.gameObject))
         {
             gameObject.transform.parent.GetChild(1).gameObject.SetActive(false);
